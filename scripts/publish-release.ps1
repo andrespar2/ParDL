@@ -50,15 +50,21 @@ $apiBase = "https://api.github.com/repos/$owner/$repo"
 # ---------------------------------------------------------------- tag
 Write-Step 'Comprobando etiqueta local...'
 Push-Location $repoRoot
+$prevEAP = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 try {
     $existingTag = (git tag --list $tag)
     if (-not $existingTag) {
-        git tag -a $tag -m "ParDL $version" 2>&1 | Out-Null
+        git tag -a $tag -m "ParDL $Version" | Out-Null
         if ($LASTEXITCODE -ne 0) { throw "No se pudo crear la etiqueta $tag" }
     }
     Write-Step "Subiendo etiqueta $tag..."
-    git push origin $tag 2>&1 | Out-Null
-} finally { Pop-Location }
+    git push origin $tag | Out-Null
+    if ($LASTEXITCODE -ne 0) { throw "No se pudo subir la etiqueta $tag" }
+} finally {
+    $ErrorActionPreference = $prevEAP
+    Pop-Location
+}
 
 # ---------------------------------------------------------------- release
 $releaseId = $null
@@ -66,17 +72,25 @@ try {
     $r = Invoke-RestMethod -Uri "$apiBase/releases/tags/$tag" -Headers $authHeaders -Method Get -TimeoutSec 30
     $releaseId = $r.id
     Write-Step "La Release $tag ya existe (id $releaseId). Se actualizara."
+    [string]$notes = [System.IO.File]::ReadAllText($NotesFile, [System.Text.Encoding]::UTF8)
+    $patch = @{
+        name       = "ParDL $tag"
+        body       = $notes
+        draft      = [bool]$Draft
+        prerelease = [bool]$Prerelease
+    } | ConvertTo-Json -Depth 5
+    Invoke-RestMethod -Uri "$apiBase/releases/$releaseId" -Headers $authHeaders -Method Patch -Body ([System.Text.Encoding]::UTF8.GetBytes($patch)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 60 | Out-Null
 } catch {
     Write-Step "Creando Release $tag..."
-    $notes = Get-Content $NotesFile -Raw
-    $body = @{
+    [string]$notes = [System.IO.File]::ReadAllText($NotesFile, [System.Text.Encoding]::UTF8)
+    $payload = @{
         tag_name   = $tag
         name       = "ParDL $tag"
         body       = $notes
         draft      = [bool]$Draft
         prerelease = [bool]$Prerelease
-    } | ConvertTo-Json
-    $r = Invoke-RestMethod -Uri "$apiBase/releases" -Headers $authHeaders -Method Post -Body $body -ContentType 'application/json; charset=utf-8' -TimeoutSec 60
+    } | ConvertTo-Json -Depth 5
+    $r = Invoke-RestMethod -Uri "$apiBase/releases" -Headers $authHeaders -Method Post -Body ([System.Text.Encoding]::UTF8.GetBytes($payload)) -ContentType 'application/json; charset=utf-8' -TimeoutSec 60
     $releaseId = $r.id
     Write-Done "Release creada: $($r.html_url)"
 }
@@ -113,3 +127,4 @@ Write-Host ''
 Write-Done "Asset subido: $($assetInfo.name)"
 Write-Done "Release: $($release.html_url)"
 Write-Host ''
+exit 0
