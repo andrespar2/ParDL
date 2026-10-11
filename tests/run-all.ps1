@@ -287,6 +287,23 @@ if (-not (Test-Path $distApp)) {
         Assert-Equal $code 0 'El diagnostico desde ruta con espacios debe pasar.'
         Assert-True $dlOk 'downloads debe crearse en la ruta con espacios.'
     }
+
+    Test-Case 'Modo one-shot rechaza URL invalida (exit 1)' {
+        & powershell.exe -NoProfile -ExecutionPolicy Bypass -File $ps1 -DownloadUrl 'no es una url' | Out-Null
+        Assert-Equal $LASTEXITCODE 1 'Debe devolver codigo 1 con una URL invalida.'
+    }
+
+    Test-Case 'Ruta con corchetes detectada (-LiteralPath)' {
+        $tmpBase = Join-Path $env:TEMP ('pardltest_' + [guid]::NewGuid().ToString('N').Substring(0, 6))
+        New-Item -ItemType Directory -Path $tmpBase -Force | Out-Null
+        $f = Join-Path $tmpBase 'Mi video [abc123].mp4'
+        Set-Content -LiteralPath $f -Value 'x' -Encoding ASCII
+        $okWild    = Test-Path $f
+        $okLiteral = Test-Path -LiteralPath $f
+        Remove-Item $tmpBase -Recurse -Force -ErrorAction SilentlyContinue
+        Assert-True (-not $okWild) 'Test-Path sin -LiteralPath no debe localizar la ruta con corchetes.'
+        Assert-True $okLiteral 'Test-Path -LiteralPath debe localizar la ruta con corchetes.'
+    }
 }
 
 # =====================================================================

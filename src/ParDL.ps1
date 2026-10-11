@@ -13,6 +13,9 @@ param(
     [switch]$SelfTest,        # Diagnóstico del entorno y termina.
     [switch]$ListExtractors,  # Vuelca la lista de extractores y termina.
     [string]$CheckUrl,        # Analiza una URL concreta y termina.
+    [string]$DownloadUrl,     # Descarga una URL sin interacción y termina.
+    [ValidateSet('video', 'audio')][string]$DownloadKind = 'video',
+    [int]$DownloadQuality = 0, # Altura (video) o kbps (audio); 0 = automático.
     [switch]$NoBanner         # Omite el banner al iniciar.
 )
 
@@ -115,7 +118,7 @@ function Write-Separator {
     if ($Width -le 0) {
         $Width = [Math]::Min(60, (Get-ConsoleWidth) - 4)
     }
-    Write-Host (' ' + ('─' * $Width)) -ForegroundColor $Color
+    Write-Host ('  ' + ('─' * $Width)) -ForegroundColor $Color
 }
 
 function Write-Title {
@@ -515,9 +518,9 @@ function Request-Download {
     }
 
     Write-Ok '¡Descarga completada!'
-    if ($finalPath -and (Test-Path $finalPath)) {
+    if ($finalPath -and (Test-Path -LiteralPath $finalPath)) {
         try {
-            $size = Format-FileSize -Bytes ((Get-Item $finalPath).Length)
+            $size = Format-FileSize -Bytes ((Get-Item -LiteralPath $finalPath).Length)
             Write-Blank
             Write-Host '  Archivo: ' -NoNewline -ForegroundColor Gray
             Write-Host $finalPath -ForegroundColor White
@@ -839,7 +842,7 @@ function Show-MainMenu {
     Write-Host '  [4] Información sobre ParDL' -ForegroundColor White
     Write-Host '  [5] Salir' -ForegroundColor White
     Write-Blank
-    Write-Dim '  Compatible con múltiples sitios web. Opción 3 para más información.'
+    Write-Dim 'Compatible con múltiples sitios web. Opción 3 para más información.'
     Write-Blank
     Write-Host -NoNewline '  Opción: ' -ForegroundColor White
 
@@ -963,6 +966,28 @@ function Invoke-CheckUrl {
     return 0
 }
 
+function Invoke-OneShotDownload {
+    param(
+        [string]$Url,
+        [string]$Kind,
+        [int]$Quality
+    )
+    $check = Test-ParDLUrl -Url $Url
+    if (-not $check.Valid) { Write-Err $check.Reason; return 1 }
+
+    $height = 0
+    $kbps   = 0
+    if ($Kind -eq 'audio') {
+        $kbps = if ($Quality -gt 0) { $Quality } else { 192 }
+    } else {
+        $height = $Quality
+    }
+
+    $res = Request-Download -Url $Url -Kind $Kind -Height $height -Kbps $kbps
+    if ($res.Ok) { return 0 }
+    return 1
+}
+
 # =====================================================================
 # 12. ARRANQUE
 # =====================================================================
@@ -999,6 +1024,10 @@ function Start-ParDL {
         }
 
         $null = Ensure-DownloadsDir
+
+        if ($DownloadUrl) {
+            return (Invoke-OneShotDownload -Url $DownloadUrl -Kind $DownloadKind -Quality $DownloadQuality)
+        }
 
         Invoke-Main
 

@@ -114,24 +114,23 @@ Write-Host ''
 Write-Step 'Registrando versiones...'
 
 function Get-ToolVersion {
-    param([string]$Exe, [string[]]$Args)
+    param([string]$Exe, [string[]]$ToolArgs)
     try {
-        $psi = New-Object System.Diagnostics.ProcessStartInfo
-        $psi.FileName = $Exe
-        $psi.Arguments = ($Args -join ' ')
-        $psi.UseShellExecute = $false
-        $psi.RedirectStandardOutput = $true
-        $psi.RedirectStandardError = $true
-        $psi.CreateNoWindow = $true
-        $p = [System.Diagnostics.Process]::Start($psi)
-        $out = $p.StandardOutput.ReadToEnd()
-        $p.WaitForExit()
-        return $out
+        $tmp = Join-Path $env:TEMP ("pdlver_" + [guid]::NewGuid().ToString('N') + ".txt")
+        $argList = ''
+        foreach ($a in $ToolArgs) { $argList += ' "' + ($a -replace '"', '') + '"' }
+        $cmdLine = "`"$Exe`"$argList > `"$tmp`" 2>&1"
+        cmd /c $cmdLine | Out-Null
+        $txt = if (Test-Path $tmp) { (Get-Content $tmp -Raw -ErrorAction SilentlyContinue) } else { '' }
+        Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+        return $txt
     } catch { return '' }
 }
 
-$ytVersion = ((Get-ToolVersion -Exe $ytdlpExe -Args @('--version')) -split "`r?`n" | Select-Object -First 1)
-$ffVersion = ((Get-ToolVersion -Exe $ffmpegExe -Args @('-version')) -split "`r?`n" | Select-Object -First 1)
+$ytVersion = ((Get-ToolVersion -Exe $ytdlpExe -ToolArgs @('--version')) -split "`r?`n" | Select-Object -First 1)
+Write-Host "    yt-dlp -> '$ytVersion'" -ForegroundColor DarkGray
+$ffVersion = ((Get-ToolVersion -Exe $ffmpegExe -ToolArgs @('-version')) -split "`r?`n" | Select-Object -First 1)
+Write-Host "    ffmpeg -> '$ffVersion'" -ForegroundColor DarkGray
 
 $report = @(
     'ParDL - componentes de terceros redistribuidos',

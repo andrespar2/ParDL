@@ -1,17 +1,9 @@
 # ===== Archivos generados / no versionados =====
 
-# Distribución portable: los binarios y el código copiado se generan con
-# scripts/build-portable.ps1 y no se versionan (evita binarios >100 MB).
-dist/ParDL/app/
-dist/ParDL/tools/*.exe
-dist/ParDL/tools/VERSIONS.txt
-
-# Contenido de la carpeta de descargas portable (se conserva el marcador)
-dist/ParDL/downloads/*
-!dist/ParDL/downloads/.gitkeep
-
-# Paquetes generados
-dist/*.zip
+# Distribución portable: todo dist/ es salida de build y de release
+# (binarios, código copiado y ZIP). Se regenera con scripts/build-portable.ps1
+# y el ZIP se publica como asset de Release, nunca en el repo.
+dist/
 *.zip
 
 # Descargas y archivos multimedia del usuario
