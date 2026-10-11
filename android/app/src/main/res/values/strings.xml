@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ParDL</string>
+    <string name="share_chooser">Compartir enlace con ParDL</string>
+</resources>

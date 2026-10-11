@@ -1,9 +1,12 @@
 # ParDL
 
-**Descargador multimedia portable para Windows** — videos en **MP4** y audio en **MP3** desde enlaces compatibles, eligiendo la calidad, **sin instalar nada**.
+**Descargador multimedia para Windows y Android** — videos en **MP4** y audio en **MP3** desde enlaces compatibles, eligiendo la calidad y la carpeta de descarga.
+
+Versión **portable para Windows** (sin instalar nada) y **app Android** con estilo negro AMOLED.
 
 [![Versión](https://img.shields.io/badge/versi%C3%B3n-0.1.0-00b4d8.svg)](#)
 [![Plataforma](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)](#)
+[![Android](https://img.shields.io/badge/Android-7.0%2B-3ddc84.svg)](#)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 
 ```
@@ -20,9 +23,9 @@ ig: andres.par2 | GitHub: andrespar2
 
 ## ¿Qué es ParDL?
 
-**ParDL** es una herramienta **gratuita y de código abierto** para Windows que permite descargar videos en **MP4** o extraer el audio en **MP3** a partir de enlaces de cientos de sitios web compatibles.
+**ParDL** es una herramienta **gratuita y de código abierto** que permite descargar videos en **MP4** o extraer el audio en **MP3** a partir de enlaces de cientos de sitios web compatibles. Está disponible **para Windows** (versión portable) **y para Android** (app).
 
-Está pensada para que **cualquier persona pueda usarla sin conocimientos técnicos**: se extrae de un ZIP, se abre `ParDL.cmd` y ya está. **No requiere instalar Python, FFmpeg ni ninguna dependencia.**
+Está pensada para que **cualquier persona pueda usarla sin conocimientos técnicos**: en Windows se extrae de un ZIP y se abre `ParDL.cmd`; en Android se instala el APK. **No requiere instalar Python, FFmpeg ni ninguna dependencia.**
 
 Todo el proyecto (interfaz, mensajes, documentación y avisos) está **en español**.
 
@@ -109,6 +112,18 @@ Los archivos descargados se guardan en `ParDL\downloads\`.
 
 ---
 
+## Descarga e instalación (Android)
+
+1. Ve a la sección **[Releases](../../releases)** y descarga `ParDL-v0.1.0-android.apk`.
+2. Ábrelo en el teléfono e instálalo (permite *"orígenes desconocidos"* si te lo pregunta).
+3. Abre **ParDL**, entra en **Carpeta y ajustes → Cambiar** y elige dónde quieres guardar las descargas.
+
+**Requisitos:** Android 7.0 o superior. El APK es **universal** (todas las arquitecturas) y ya incluye yt-dlp y FFmpeg.
+
+En Android los archivos se descargan primero en el almacenamiento privado de la app y luego se copian a la carpeta que elijas, de forma segura en Android 10+. También puedes **compartir un enlace con ParDL** desde otras apps.
+
+---
+
 ## Uso
 
 1. Elige `1` (video MP4) o `2` (audio MP3).
@@ -125,16 +140,24 @@ La opción **3 – Sitios compatibles** muestra ejemplos conocidos y permite con
 
 ```text
 ParDL/
-├── src/                    Código fuente
+├── src/                    Código fuente (Windows)
 │   ├── ParDL.cmd           Entrada (CMD)
 │   ├── ParDL.ps1           Aplicación (PowerShell)
 │   └── lib/ParDL.Core.ps1  Funciones internas
+├── android/                App Android (Kotlin + Jetpack Compose)
+│   ├── app/                Módulo de la app
+│   ├── build.gradle.kts
+│   └── keystore.properties Firma de Release (no versionado)
 ├── scripts/
-│   ├── download-tools.ps1  Descarga y verifica yt-dlp y FFmpeg
-│   └── build-portable.ps1  Genera la distribución portable + ZIP
+│   ├── download-tools.ps1      Descarga y verifica yt-dlp y FFmpeg
+│   ├── build-portable.ps1      Genera la distribución portable + ZIP
+│   ├── publish-release.ps1     Publica la Release del ZIP en GitHub
+│   └── publish-android-apk.ps1 Adjunta el APK a una Release existente
 ├── docs/
-│   └── README-portable.txt Instrucciones para el usuario final
-├── tests/                  Pruebas automatizadas
+│   ├── README-portable.txt     Instrucciones para el usuario final
+│   ├── release-notes-v0.1.0.md Notas de la Release (Windows)
+│   └── release-notes-android.md Notas de la app Android
+├── tests/                  Pruebas automatizadas (Windows)
 ├── dist/                   Distribución generada
 │   └── ParDL/              Versión portable lista para usar/comprimir
 ├── README.md
@@ -170,9 +193,50 @@ powershell -ExecutionPolicy Bypass -File tests\run-all.ps1
 
 ---
 
+## Compilar la app Android
+
+La app está escrita en **Kotlin + Jetpack Compose** (Material 3), con el motor
+`youtubedl-android` (yt-dlp + FFmpeg empaquetados). Requiere JDK 17, el SDK de
+Android (API 34) y Gradle 8.9.
+
+```powershell
+cd android
+
+# APK universal de depuración
+gradlew.bat assembleDebug
+
+# APK universal de Release (requiere android\keystore.properties)
+gradlew.bat assembleRelease
+```
+
+- Salida de depuración: `android\app\build\outputs\apk\debug\app-debug.apk`
+- Salida de release: `android\app\build\outputs\apk\release\app-release.apk`
+
+Para la firma de Release, crea `android\keystore.properties` (no se versiona):
+
+```properties
+storeFile=../pardl-release.keystore
+storePassword=...
+keyAlias=pardl
+keyPassword=...
+```
+
+Si ese archivo no existe, la build de Release cae al firmado de depuración.
+
+### Publicar el APK
+
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\publish-android-apk.ps1 `
+    -Tag v0.1.0 `
+    -ApkPath android\app\build\outputs\apk\release\app-release.apk `
+    -NotesFile docs\release-notes-android.md -AppendNotes
+```
+
+---
+
 ## Limitaciones conocidas
 
-- Solo hay binarios para **Windows x64** (de momento).
+- Solo hay binarios para **Windows x64** y un **APK universal de Android** (de momento).
 - El rendimiento y la disponibilidad dependen del sitio y del motor **yt-dlp**.
 - La compatibilidad de sitios puede cambiar con el tiempo.
 - Algunos contenidos requieren inicio de sesión o no están disponibles: ParDL lo informará.

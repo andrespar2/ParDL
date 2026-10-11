@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Logotipo ParDL: letra "P" en pixel-art (mismo estilo del banner de la versión de PC) -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <path android:pathData="M29,29 h9 v9 h-9 z">
+        <aapt:attr xmlns:aapt="http://schemas.android.com/aapt" name="android:fillColor">
+            <gradient android:type="linear"
+                android:startX="29" android:startY="29"
+                android:endX="79" android:endY="79">
+                <item android:offset="0" android:color="#FF00E5FF" />
+                <item android:offset="1" android:color="#FF0072FF" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path android:fillColor="#FF00E5FF" android:pathData="M39,29 h9 v9 h-9 z" />
+    <path android:fillColor="#FF00D5FF" android:pathData="M49,29 h9 v9 h-9 z" />
+    <path android:fillColor="#FF00C5FF" android:pathData="M59,29 h9 v9 h-9 z" />
+    <path android:fillColor="#FF00B4FF" android:pathData="M69,29 h9 v9 h-9 z" />
+
+    <path android:fillColor="#FF00A8FF" android:pathData="M29,39 h9 v9 h-9 z" />
+    <path android:fillColor="#FF0098FF" android:pathData="M69,39 h9 v9 h-9 z" />
+
+    <path android:fillColor="#FF0090FA" android:pathData="M29,49 h9 v9 h-9 z" />
+    <path android:fillColor="#FF0088F5" android:pathData="M39,49 h9 v9 h-9 z" />
+    <path android:fillColor="#FF0080F0" android:pathData="M49,49 h9 v9 h-9 z" />
+    <path android:fillColor="#FF0078EB" android:pathData="M59,49 h9 v9 h-9 z" />
+    <path android:fillColor="#FF0072EB" android:pathData="M69,49 h9 v9 h-9 z" />
+
+    <path android:fillColor="#FF0066E0" android:pathData="M29,59 h9 v9 h-9 z" />
+    <path android:fillColor="#FF005CD6" android:pathData="M29,69 h9 v9 h-9 z" />
+</vector>
