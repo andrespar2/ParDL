@@ -53,5 +53,4 @@ enlaces (vídeo y audio), descarga de **MP4 720p** con fusión de FFmpeg y **MP3
 persistente, cancelación de descarga y actualización de yt-dlp (2025.11.12 →
 2026.08.19).
 
-> Esta primera versión de Android se publica como **preliminar (pre-release)**,
-> igual que la versión portable.
+Si encuentras algún problema, repórtalo en la pestaña *Issues*.

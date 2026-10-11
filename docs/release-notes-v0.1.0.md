@@ -4,8 +4,8 @@
 descargar videos en **MP4** o extraer audio en **MP3** desde enlaces
 compatibles, eligiendo la calidad, **sin instalar nada**.
 
-> ⚠️ **Versión preliminar (0.1.0).** Es la primera publicación. Pruébala y
-> reporta cualquier problema en la pestaña *Issues*.
+> ℹ️ **Primera versión (0.1.0).** Si encuentras cualquier problema, repórtalo
+> en la pestaña *Issues*.
 
 ---
 
@@ -65,10 +65,9 @@ Verificado automáticamente con `tests\run-all.ps1` (**53/53 pruebas**) y con
 descargas reales de prueba (video MP4 con *merge* de FFmpeg y audio MP3 a
 192 kbps desde un contenido de dominio público de archive.org).
 
-Pendiente de prueba manual (interfaz interactiva): cancelación con `Ctrl+C`
-durante una descarga, apertura de la carpeta con la opción **2** y selección
-de calidad cuando la resolución pedida no existe. Por eso esta primera
-publicación se marca como **preliminar (pre-release)**.
+También comprobado el flujo interactivo: cancelación durante la descarga,
+selección de calidad cuando la resolución pedida no existe y apertura de la
+carpeta de descargas.
 
 ---
 
