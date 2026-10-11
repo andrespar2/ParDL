@@ -1,0 +1,37 @@
+# ===== Archivos generados / no versionados =====
+
+# Distribución portable: los binarios y el código copiado se generan con
+# scripts/build-portable.ps1 y no se versionan (evita binarios >100 MB).
+dist/ParDL/app/
+dist/ParDL/tools/*.exe
+dist/ParDL/tools/VERSIONS.txt
+
+# Contenido de la carpeta de descargas portable (se conserva el marcador)
+dist/ParDL/downloads/*
+!dist/ParDL/downloads/.gitkeep
+
+# Paquetes generados
+dist/*.zip
+*.zip
+
+# Descargas y archivos multimedia del usuario
+/downloads/
+*.mp4
+*.mkv
+*.webm
+*.mp3
+*.m4a
+*.part
+*.ytdl
+
+# Caché de herramientas y temporales
+/.cache/
+/tmp/
+*.log
+/sitios-compatibles.txt
+
+# Sistema / editor
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/

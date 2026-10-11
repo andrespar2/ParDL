@@ -1,0 +1,62 @@
+=====================================================================
+ ParDL - AVISOS DE TERCEROS (THIRD PARTY NOTICES)
+=====================================================================
+
+ParDL es un proyecto original distribuido bajo la licencia MIT (ver el
+archivo LICENSE). El codigo propio de ParDL es (c) 2026 andrespar2.
+
+ParDL NO incluye codigo de terceros dentro de su propio codigo fuente.
+Sin embargo, la distribucion portable redistribuye los siguientes
+programas independientes como herramientas externas. Cada uno conserva
+su propia licencia y sus propios titulares de derechos.
+
+---------------------------------------------------------------------
+ 1. yt-dlp
+---------------------------------------------------------------------
+ Descripcion : Motor de descarga multimedia.
+ Archivo     : tools/yt-dlp.exe
+ Sitio       : https://github.com/yt-dlp/yt-dlp
+ Licencia    : The Unlicense (equivalente a dominio publico).
+ Texto de la licencia:
+   https://github.com/yt-dlp/yt-dlp/blob/master/LICENSE
+
+ yt-dlp es un proyecto comunitario derivado de youtube-dl.
+
+---------------------------------------------------------------------
+ 2. FFmpeg (ffmpeg.exe y ffprobe.exe)
+---------------------------------------------------------------------
+ Descripcion : Procesamiento, union y conversion de audio y video.
+ Archivos    : tools/ffmpeg.exe, tools/ffprobe.exe
+ Sitio       : https://ffmpeg.org
+ Compilacion : Build "essentials" para Windows de https://www.gyan.dev/ffmpeg/builds/
+ Licencia    : GNU General Public License, version 3 (GPLv3).
+
+ Esta compilacion de FFmpeg se distribuye con --enable-gpl, por lo que
+ queda sujeta a la GNU GPL version 3. Al redistribuir estos binarios se
+ conservan los derechos de sus autores.
+
+ Texto de la licencia GPLv3:
+   https://www.gnu.org/licenses/gpl-3.0.html
+ Codigo fuente de FFmpeg (exigido por la GPL):
+   https://ffmpeg.org/download.html
+   https://github.com/FFmpeg/FFmpeg
+
+ FFmpeg es una marca registrada de Fabrice Bellard y otros autores.
+ FFmpeg es (c) 2000-2026 the FFmpeg developers.
+
+---------------------------------------------------------------------
+ 3. Windows PowerShell (no redistribuido)
+---------------------------------------------------------------------
+ ParDL utiliza Windows PowerShell, incluido de serie en Windows 10 y
+ Windows 11. No se redistribuye ni modifica; se invoca tal como lo
+ provee el sistema operativo.
+
+---------------------------------------------------------------------
+ NOTA LEGAL SOBRE EL USO
+---------------------------------------------------------------------
+ParDL es una interfaz de usuario sobre estas herramientas. El usuario es
+el unico responsable de respetar los derechos de autor, los terminos de
+servicio de cada sitio web y la legislacion aplicable. ParDL no elude
+DRM, controles de acceso ni medidas de proteccion tecnica.
+
+=====================================================================
