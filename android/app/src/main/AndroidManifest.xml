@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
 
     <application
         android:name=".ParDLApp"
@@ -16,6 +19,8 @@
         android:largeHeap="true"
         android:extractNativeLibs="true"
         android:requestLegacyExternalStorage="true"
+        android:usesCleartextTraffic="false"
+        android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.ParDL"
         tools:targetApi="34">
 
@@ -37,6 +42,24 @@
                 <data android:mimeType="text/plain" />
             </intent-filter>
         </activity>
+
+        <service
+            android:name=".core.music.MusicDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <service
+            android:name=".core.LegacyDownloadService"
+            android:exported="false"
+            android:foregroundServiceType="dataSync" />
+
+        <receiver
+            android:name=".core.music.OpenFileReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.andrespar2.pardl.action.OPEN_FILE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

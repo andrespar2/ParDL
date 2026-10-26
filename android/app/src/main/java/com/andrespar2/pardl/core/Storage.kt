@@ -14,6 +14,8 @@ import java.util.Locale
  */
 object Storage {
 
+    data class SavedFile(val name: String, val uri: Uri)
+
     /** Carpeta real de trabajo (no requiere permisos) donde descarga yt-dlp. */
     fun workingRoot(context: Context): File {
         val base = context.getExternalFilesDir(null) ?: context.filesDir
@@ -45,9 +47,29 @@ object Storage {
     /**
      * Copia [source] dentro del árbol [treeUri] y devuelve el nombre final.
      */
-    fun copyIntoTree(context: Context, treeUri: Uri, source: File): String {
-        val tree = DocumentFile.fromTreeUri(context, treeUri)
+    fun copyIntoTree(context: Context, treeUri: Uri, source: File): String =
+        copyIntoTreeSaved(context, treeUri, source).name
+
+    /**
+     * Copia [source] dentro del árbol [treeUri], creando las subcarpetas
+     * indicadas (por ejemplo artista/álbum) y devolviendo también la URI final.
+     */
+    fun copyIntoTreeSaved(
+        context: Context,
+        treeUri: Uri,
+        source: File,
+        relativeDirs: List<String> = emptyList()
+    ): SavedFile {
+        var tree = DocumentFile.fromTreeUri(context, treeUri)
             ?: throw IOException("No se pudo acceder a la carpeta seleccionada. Vuelve a elegirla.")
+
+        for (raw in relativeDirs) {
+            val name = sanitizeSegment(raw)
+            if (name.isBlank()) continue
+            tree = tree.findFile(name)?.takeIf { it.isDirectory }
+                ?: tree.createDirectory(name)
+                ?: tree
+        }
 
         val mime = mimeFor(source.name)
         var doc = tree.createFile(mime, source.name)
@@ -69,8 +91,15 @@ object Storage {
             source.inputStream().use { input -> input.copyTo(out, DEFAULT_BUFFER_SIZE) }
         } ?: throw IOException("No se pudo escribir en la carpeta destino.")
 
-        return doc.name ?: source.name
+        return SavedFile(doc.name ?: source.name, doc.uri)
     }
+
+    fun sanitizeSegment(raw: String): String =
+        raw.trim()
+            .replace(Regex("""[\\/:*?"<>|\u0000-\u001F]"""), "_")
+            .replace(Regex("\\s+"), " ")
+            .trim('.', ' ')
+            .take(80)
 
     private fun mimeFor(name: String): String {
         return when (name.substringAfterLast('.', "").lowercase(Locale.ROOT)) {
@@ -79,8 +108,10 @@ object Storage {
             "mkv" -> "video/x-matroska"
             "mp3" -> "audio/mpeg"
             "m4a" -> "audio/mp4"
+            "flac" -> "audio/flac"
             "opus", "ogg" -> "audio/ogg"
             "wav" -> "audio/wav"
+            "aiff", "aif" -> "audio/aiff"
             else -> "application/octet-stream"
         }
     }

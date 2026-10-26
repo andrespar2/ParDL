@@ -2,6 +2,7 @@ package com.andrespar2.pardl.core
 
 import android.content.Context
 import android.net.Uri
+import com.andrespar2.pardl.core.music.HistoryStore
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.CoroutineScope
@@ -74,6 +75,7 @@ object Downloader {
         titleHint: String
     ) {
         if (_state.value is DownloadState.Downloading) return
+        LegacyDownloadService.start(context)
         scope.launch { runDownload(context.applicationContext, url, kind, choice, treeUriString, titleHint) }
     }
 
@@ -162,13 +164,27 @@ object Downloader {
             }
 
             val sizeText = Format.formatFileSize(produced.length())
-            val finalName = Storage.copyIntoTree(context, Uri.parse(treeUriString), produced)
+            val saved = Storage.copyIntoTreeSaved(context, Uri.parse(treeUriString), produced)
             val folder = Prefs.get(context).folderName
+            HistoryStore.record(
+                context,
+                HistoryStore.Entry(
+                    id = "legacy-${System.currentTimeMillis()}",
+                    kind = if (kind == DownloadKind.VIDEO) "Video MP4" else "Audio MP3",
+                    title = titleHint,
+                    quality = choice.label,
+                    fileName = saved.name,
+                    uri = saved.uri.toString(),
+                    detail = sizeText,
+                    success = true
+                )
+            )
 
             _state.value = DownloadState.Success(
-                fileName = finalName,
+                fileName = saved.name,
                 savedTo = folder,
-                detail = sizeText
+                detail = sizeText,
+                savedUri = saved.uri.toString()
             )
             jobDir.deleteRecursively()
         } catch (c: YoutubeDL.CanceledException) {

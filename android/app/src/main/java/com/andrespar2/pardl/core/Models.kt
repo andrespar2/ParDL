@@ -2,7 +2,7 @@ package com.andrespar2.pardl.core
 
 /** Metadatos de la aplicación. */
 object AppInfo {
-    const val VERSION = "0.1.0"
+    const val VERSION = "0.2.0"
     const val AUTHOR = "andrespar2"
     const val INSTAGRAM = "andres.par2"
     const val GITHUB = "andrespar2"
@@ -50,7 +50,8 @@ sealed interface DownloadState {
     data class Success(
         val fileName: String,
         val savedTo: String?,
-        val detail: String?
+        val detail: String?,
+        val savedUri: String? = null
     ) : DownloadState
 
     data class Failure(val message: String, val detail: String?) : DownloadState
