@@ -245,7 +245,7 @@ fun DownloadScreen(
         }
     }
 
-    val title = if (kind == DownloadKind.VIDEO) "Descargar video (MP4)" else "Descargar audio (MP3)"
+    val title = if (kind == DownloadKind.VIDEO) "Descargar video (MP4)" else "Descargar audio"
 
     Column(
         Modifier

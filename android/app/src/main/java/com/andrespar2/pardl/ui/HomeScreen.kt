@@ -149,8 +149,8 @@ fun HomeScreen(
             )
             ActionCard(
                 icon = Icons.Default.MusicNote,
-                title = "Audio MP3",
-                subtitle = "128–320 kbps",
+                title = "Audio",
+                subtitle = "MP3 o formato original",
                 accent = AccentCyan,
                 modifier = Modifier.weight(1f),
                 onClick = onAudio
