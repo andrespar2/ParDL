@@ -44,6 +44,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import com.andrespar2.pardl.core.DownloadKind
@@ -51,14 +52,45 @@ import com.andrespar2.pardl.ui.theme.Danger
 import com.andrespar2.pardl.ui.theme.LocalGlass
 import com.andrespar2.pardl.ui.theme.TextDim
 import com.andrespar2.pardl.ui.theme.Warning
+import org.json.JSONTokener
 
 /**
- * Navegador interno. Permite navegar a YouTube, SoundCloud, Bandcamp u otras
- * webs y enviar la URL actual al motor yt-dlp para descargar audio o video.
- *
- * No inyecta JavaScript ni elude controles de acceso; solo es un WebView con
- * navegación normal. El usuario es responsable del contenido que descarga.
+ * Intenta obtener la URL del vídeo que se está reproduciendo, no la URL
+ * histórica de la barra superior. En YouTube prioriza la URL /watch actual y
+ * el videoId del reproductor; en otras webs usa iframe, canonical u og:url.
  */
+private const val RESOLVE_PLAYING_URL_JS = """
+(function() {
+  try {
+    var host = (location.hostname || '').toLowerCase();
+    var href = location.href || '';
+    var yt = window.ytInitialPlayerResponse;
+    var vid = yt && yt.videoDetails && yt.videoDetails.videoId;
+    if (!vid) {
+      var el = document.querySelector('ytd-watch-flexy, ytm-watch, [video-id]');
+      if (el) {
+        vid = el.getAttribute('video-id') || (el.data && el.data.videoId);
+      }
+    }
+    if (host.indexOf('youtube') >= 0) {
+      if (href.indexOf('/watch') >= 0 || href.indexOf('/embed/') >= 0) return href;
+      if (vid) return 'https://www.youtube.com/watch?v=' + vid;
+    }
+    var iframe = document.querySelector('iframe[src*="youtube.com/embed/"], iframe[src*="youtube-nocookie.com/embed/"]');
+    if (iframe && iframe.src && iframe.src.indexOf('http') === 0) return iframe.src;
+    var canonical = document.querySelector('link[rel="canonical"]');
+    if (canonical && canonical.href && canonical.href.indexOf('http') === 0) return canonical.href;
+    var og = document.querySelector('meta[property="og:url"]');
+    if (og && og.content && og.content.indexOf('http') === 0) return og.content;
+    var v = document.querySelector('video');
+    if (v && v.currentSrc && v.currentSrc.indexOf('http') === 0) return v.currentSrc;
+    return href;
+  } catch (e) {
+    return location.href;
+  }
+})()
+"""
+
 @SuppressLint("SetJavaScriptEnabled")
 @Composable
 fun BrowserScreen(
@@ -79,12 +111,17 @@ fun BrowserScreen(
     var webView by remember { mutableStateOf<WebView?>(null) }
 
     fun normalize(input: String): String {
-        val value = input.trim()
-        if (value.isEmpty()) return startUrl
-        return if (value.startsWith("http://", true) || value.startsWith("https://", true)) {
-            value
+        val raw = input.trim()
+        if (raw.isEmpty()) return startUrl
+        val compact = raw.filterNot { it.isWhitespace() }
+        val looksLikeUrl = compact.contains("://") || compact.contains('.')
+        if (!looksLikeUrl) {
+            return "https://www.google.com/search?q=${Uri.encode(raw)}"
+        }
+        return if (compact.startsWith("http://", true) || compact.startsWith("https://", true)) {
+            compact
         } else {
-            "https://$value"
+            "https://$compact"
         }
     }
 
@@ -93,6 +130,30 @@ fun BrowserScreen(
         error = null
         keyboard?.hide()
         webView?.loadUrl(target)
+    }
+
+    fun extractWebUrl(raw: String?): String? {
+        if (raw.isNullOrBlank() || raw == "null") return null
+        return runCatching {
+            JSONTokener(raw).nextValue() as? String
+        }.getOrNull()?.trim()?.takeIf { it.startsWith("http://", true) || it.startsWith("https://", true) }
+    }
+
+    fun resolveAndDownload(kind: DownloadKind) {
+        keyboard?.hide()
+        val view = webView
+        if (view == null) {
+            onDownload(currentUrl, kind)
+            return
+        }
+        view.evaluateJavascript(RESOLVE_PLAYING_URL_JS) { result ->
+            val resolved = extractWebUrl(result)
+                ?: view.url
+                ?: currentUrl
+            currentUrl = resolved
+            address = resolved
+            onDownload(resolved, kind)
+        }
     }
 
     BackHandler {
@@ -154,6 +215,7 @@ fun BrowserScreen(
                 placeholder = "Busca o escribe una dirección",
                 modifier = Modifier.weight(1f),
                 leadingIcon = Icons.Default.Search,
+                keyboardType = KeyboardType.Uri,
                 imeAction = androidx.compose.ui.text.input.ImeAction.Go,
                 keyboardActions = KeyboardActions(onGo = { load(address) })
             )
@@ -232,6 +294,20 @@ fun BrowserScreen(
                                 loading = false
                                 progress = 100
                                 url?.let {
+                                    currentUrl = it
+                                    address = it
+                                }
+                                canGoBack = view?.canGoBack() == true
+                                canGoForward = view?.canGoForward() == true
+                            }
+
+                            override fun doUpdateVisitedHistory(
+                                view: WebView?,
+                                url: String?,
+                                isReload: Boolean
+                            ) {
+                                super.doUpdateVisitedHistory(view, url, isReload)
+                                url?.takeIf { it.startsWith("http") }?.let {
                                     currentUrl = it
                                     address = it
                                 }
@@ -328,19 +404,13 @@ fun BrowserScreen(
             ) {
                 PillButton(
                     text = "Descargar audio",
-                    onClick = {
-                        keyboard?.hide()
-                        onDownload(currentUrl, DownloadKind.AUDIO)
-                    },
+                    onClick = { resolveAndDownload(DownloadKind.AUDIO) },
                     icon = Icons.Default.Download,
                     modifier = Modifier.weight(1.4f)
                 )
                 PillButton(
                     text = "Video",
-                    onClick = {
-                        keyboard?.hide()
-                        onDownload(currentUrl, DownloadKind.VIDEO)
-                    },
+                    onClick = { resolveAndDownload(DownloadKind.VIDEO) },
                     icon = Icons.Default.Download,
                     primary = false,
                     modifier = Modifier.weight(1f)

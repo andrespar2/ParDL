@@ -91,6 +91,7 @@ import com.andrespar2.pardl.ui.theme.LocalGlass
 import com.andrespar2.pardl.ui.theme.Success
 import com.andrespar2.pardl.ui.theme.Warning
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 private enum class Step { SEARCH, QUALITIES, PREVIEW, BATCH }
 
@@ -159,13 +160,20 @@ fun MusicScreen(
         selectedIds = emptySet()
         step = Step.SEARCH
         scope.launch {
-            val result = MusicRepository.search(context, MusicQuery(text, effectiveMode))
-            outcome = result
-            searching = false
-            if (result.tracks.isEmpty() && result.legacyUrl == null) {
-                error = result.errors.firstOrNull()
-                    ?: result.notice
-                    ?: "No se encontraron resultados."
+            val result = withTimeoutOrNull(70_000) {
+                MusicRepository.search(context, MusicQuery(text, effectiveMode))
+            }
+            if (result == null) {
+                searching = false
+                error = "La búsqueda tardó demasiado. Comprueba la conexión y vuelve a intentarlo."
+            } else {
+                outcome = result
+                searching = false
+                if (result.tracks.isEmpty() && result.legacyUrl == null) {
+                    error = result.errors.firstOrNull()
+                        ?: result.notice
+                        ?: "No se encontraron resultados."
+                }
             }
         }
     }
@@ -194,7 +202,16 @@ fun MusicScreen(
         step = Step.QUALITIES
         loadingQualities = true
         scope.launch {
-            val bundle = MusicRepository.qualities(context, track)
+            val bundle = withTimeoutOrNull(35_000) {
+                MusicRepository.qualities(context, track)
+            }
+            if (bundle == null) {
+                qualities = emptyList()
+                qualityMessage = "La consulta de calidades tardó demasiado."
+                error = "Tiempo de espera agotado. Prueba otro proveedor o enlace."
+                loadingQualities = false
+                return@launch
+            }
             qualities = bundle.qualities
             qualityMessage = bundle.message
             error = bundle.error
@@ -212,16 +229,20 @@ fun MusicScreen(
         step = Step.PREVIEW
         draft = null
         scope.launch {
-            draft = MusicRepository.prepare(context, track, quality)
+            draft = withTimeoutOrNull(50_000) {
+                MusicRepository.prepare(context, track, quality)
+            }
             loadingDraft = false
-            if (draft == null) error = "No se pudieron preparar los metadatos."
+            if (draft == null) error = "La preparación de metadatos tardó demasiado."
         }
     }
 
     fun loadAlbum(track: TrackCandidate) {
         loadingAlbum = true
         scope.launch {
-            val list = MusicRepository.albumTracks(context, track)
+            val list = withTimeoutOrNull(35_000) {
+                MusicRepository.albumTracks(context, track)
+            } ?: emptyList()
             loadingAlbum = false
             if (list.isEmpty()) {
                 error = "El proveedor no devolvió las pistas del álbum."
@@ -241,7 +262,15 @@ fun MusicScreen(
         loadingAlternatives = true
         showAlternatives = false
         scope.launch {
-            val result = MusicRepository.findAlternatives(context, track)
+            val result = withTimeoutOrNull(50_000) {
+                MusicRepository.findAlternatives(context, track)
+            }
+            if (result == null) {
+                loadingAlternatives = false
+                showAlternatives = false
+                error = "La búsqueda de otras fuentes tardó demasiado."
+                return@launch
+            }
             alternatives = result.tracks
             loadingAlternatives = false
             showAlternatives = true
@@ -262,8 +291,13 @@ fun MusicScreen(
         preparingBatch = true
         batchPlan = null
         scope.launch {
-            batchPlan = MusicRepository.prepareBatch(context, tracks)
+            batchPlan = withTimeoutOrNull(120_000) {
+                MusicRepository.prepareBatch(context, tracks)
+            }
             preparingBatch = false
+            if (batchPlan == null) {
+                error = "La preparación de la descarga múltiple tardó demasiado."
+            }
         }
     }
 
@@ -276,16 +310,18 @@ fun MusicScreen(
         }
         confirmBatch = true
         scope.launch {
-            val drafts = items.mapNotNull { item ->
-                val quality = item.selected ?: return@mapNotNull null
-                MusicRepository.prepare(context, item.track, quality)?.copy(
-                    embedCover = prefs.musicEmbedCover,
-                    embedLyrics = prefs.musicEmbedLyrics,
-                    organizeByAlbum = prefs.musicOrganize
-                )
-            }
+            val drafts = withTimeoutOrNull(180_000) {
+                items.mapNotNull { item ->
+                    val quality = item.selected ?: return@mapNotNull null
+                    MusicRepository.prepare(context, item.track, quality)?.copy(
+                        embedCover = prefs.musicEmbedCover,
+                        embedLyrics = prefs.musicEmbedLyrics,
+                        organizeByAlbum = prefs.musicOrganize
+                    )
+                }
+            } ?: emptyList()
             if (drafts.isEmpty()) {
-                error = "No se pudo preparar ninguna descarga."
+                error = "No se pudo preparar ninguna descarga o la operación tardó demasiado."
                 confirmBatch = false
                 return@launch
             }

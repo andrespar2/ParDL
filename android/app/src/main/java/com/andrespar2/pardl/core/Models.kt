@@ -2,7 +2,7 @@ package com.andrespar2.pardl.core
 
 /** Metadatos de la aplicación. */
 object AppInfo {
-    const val VERSION = "0.3.0"
+    const val VERSION = "0.3.1"
     const val AUTHOR = "andrespar2"
     const val INSTAGRAM = "andres.par2"
     const val GITHUB = "andrespar2"

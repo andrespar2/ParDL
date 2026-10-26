@@ -97,6 +97,13 @@ object Downloader {
         if (pid != null) {
             try { YoutubeDL.getInstance().destroyProcessById(pid) } catch (_: Exception) { }
         }
+        _analyzing.value = false
+    }
+
+    /** Cancela solo el análisis y libera la interfaz aunque el proceso no responda. */
+    fun abortAnalysis() {
+        cancel()
+        _analyzing.value = false
     }
 
     /** Vuelve al estado inicial. */

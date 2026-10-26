@@ -72,8 +72,11 @@ import com.andrespar2.pardl.ui.theme.TextDim
 import com.andrespar2.pardl.ui.theme.TextPrimary
 import com.andrespar2.pardl.ui.theme.TextSecondary
 import com.andrespar2.pardl.ui.theme.Warning
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeoutOrNull
 
 @Composable
 fun DownloadScreen(
@@ -106,6 +109,7 @@ fun DownloadScreen(
     var metadataError by remember { mutableStateOf<String?>(null) }
     var bindMetadata by remember { mutableStateOf(false) }
     var embedCover by remember { mutableStateOf(true) }
+    var analysisAbortRequested by remember { mutableStateOf(false) }
 
     val engineReady = engineState is EngineState.Ready
 
@@ -201,10 +205,20 @@ fun DownloadScreen(
         }
         errorMsg = null
         info = null
+        analysisAbortRequested = false
         Downloader.reset()
         scope.launch {
-            Downloader.analyze(cleaned)
-                .onSuccess { media ->
+            val job = async(Dispatchers.IO) { Downloader.analyze(cleaned) }
+            val result = withTimeoutOrNull(45_000) { job.await() }
+            if (result == null) {
+                Downloader.abortAnalysis()
+                job.cancel()
+                errorMsg = "El análisis tardó demasiado. El sitio puede estar bloqueando " +
+                    "la petición; prueba otro enlace o actualiza yt-dlp."
+            } else if (analysisAbortRequested) {
+                errorMsg = "Análisis cancelado."
+            } else {
+                result.onSuccess { media ->
                     info = media
                     url = media.webpageUrl ?: cleaned
                     metadataPreview = null
@@ -218,9 +232,17 @@ fun DownloadScreen(
                             ?.let { "fmt:${it.formatId}" }
                             ?: Format.defaultAudioChoice().key
                     }
+                }.onFailure {
+                    errorMsg = it.message ?: "No se pudo analizar el enlace."
                 }
-                .onFailure { errorMsg = it.message ?: "No se pudo analizar el enlace." }
+            }
         }
+    }
+
+    fun cancelAnalysis() {
+        analysisAbortRequested = true
+        Downloader.abortAnalysis()
+        errorMsg = "Análisis cancelado."
     }
 
     fun findMetadata() {
@@ -230,16 +252,23 @@ fun DownloadScreen(
         metadataPreview = null
         bindMetadata = false
         scope.launch {
-            MusicRepository.findMetadata(
-                context = context,
-                title = media.title,
-                artist = media.uploader.orEmpty(),
-                providerId = metadataProvider
-            ).onSuccess {
-                metadataPreview = it
-                bindMetadata = true
-            }.onFailure {
-                metadataError = it.message ?: "No se encontraron metadatos."
+            val result = withTimeoutOrNull(45_000) {
+                MusicRepository.findMetadata(
+                    context = context,
+                    title = media.title,
+                    artist = media.uploader.orEmpty(),
+                    providerId = metadataProvider
+                )
+            }
+            if (result == null) {
+                metadataError = "La búsqueda de metadatos tardó demasiado. Prueba otro proveedor."
+            } else {
+                result.onSuccess {
+                    metadataPreview = it
+                    bindMetadata = true
+                }.onFailure {
+                    metadataError = it.message ?: "No se encontraron metadatos."
+                }
             }
             metadataLoading = false
         }
@@ -301,6 +330,7 @@ fun DownloadScreen(
                     onChangeFolder = { folderLauncher.launch(null) },
                     onAnalyze = { analyze() },
                     onDownload = { requestDownload() },
+                    onCancelAnalyze = { cancelAnalysis() },
                     metadataProvider = metadataProvider,
                     onMetadataProviderChange = {
                         metadataProvider = it
@@ -341,6 +371,7 @@ private fun FormView(
     onChangeFolder: () -> Unit,
     onAnalyze: () -> Unit,
     onDownload: () -> Unit,
+    onCancelAnalyze: () -> Unit,
     metadataProvider: String,
     onMetadataProviderChange: (String) -> Unit,
     metadataPreview: MusicRepository.MetadataPreview?,
@@ -392,13 +423,24 @@ private fun FormView(
 
     Spacer(Modifier.height(12.dp))
 
-    Row(verticalAlignment = Alignment.CenterVertically) {
+    Row(
+        Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
         PrimaryButton(
             text = if (analyzing) "Analizando…" else "Analizar",
             enabled = !analyzing && url.isNotBlank() && engineReady,
             onClick = onAnalyze,
             modifier = Modifier.weight(1f)
         )
+        if (analyzing) {
+            GhostButton(
+                text = "Cancelar",
+                onClick = onCancelAnalyze,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 
     if (!engineReady) {
@@ -414,8 +456,12 @@ private fun FormView(
         Spacer(Modifier.height(14.dp))
         NoticeCard(
             text = errorMsg,
-            color = Danger,
-            title = "No se pudo analizar el enlace"
+            color = if (errorMsg.contains("cancelado", ignoreCase = true)) Warning else Danger,
+            title = if (errorMsg.contains("cancelado", ignoreCase = true)) {
+                "Análisis cancelado"
+            } else {
+                "No se pudo analizar el enlace"
+            }
         )
     }
 
