@@ -98,7 +98,7 @@ fun HomeScreen(
                     color = glass.textPrimary
                 )
                 Text(
-                    "ParDL v${AppInfo.VERSION} · Liquid Glass",
+                    "v${AppInfo.VERSION} · Liquid Glass",
                     style = MaterialTheme.typography.bodySmall,
                     color = glass.textSecondary
                 )
