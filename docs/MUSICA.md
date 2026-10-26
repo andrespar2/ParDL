@@ -77,11 +77,21 @@ muestra qué etiquetas se escribirán y qué campos no están disponibles.
 Android no garantiza continuidad tras una detención forzada desde Ajustes; en
 ese caso la cola queda persistida y se reanuda al abrir la app.
 
+## Navegador y audio completo
+
+El módulo de música no es la única vía. Desde **Navegador web** se puede
+descargar el audio completo de enlaces compatibles con yt-dlp, conservando el
+formato original y eligiendo entre los bitrates reales declarados. Después se
+pueden vincular metadatos de otro proveedor antes de escribir las etiquetas.
+Ver [NAVEGADOR.md](NAVEGADOR.md).
+
 ## Archivos principales
 
 ```
 core/music/MusicModels.kt           modelos, calidades, serialización
 core/music/Providers.kt             contratos de proveedores
+core/music/ArtworkLoader.kt         descarga de portada para etiquetar
+ui/BrowserScreen.kt                 navegador WebView interno
 core/music/ProviderRegistry        proveedores y orden (MusicProviders)
 core/music/MusicRepository.kt       búsqueda, enlaces, calidades, metadatos
 core/music/TrackMatchEngine.kt      ISRC, título, artistas, versión, duración

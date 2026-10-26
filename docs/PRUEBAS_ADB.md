@@ -156,6 +156,42 @@ Se eliminaron exactamente los archivos creados por las pruebas:
 También se vaciaron la cola y el historial de prueba de la app y se borraron
 las carpetas vacías creadas. La carpeta personal del usuario no se tocó.
 
+## Navegador y audio completo (segundo dispositivo)
+
+Durante esta fase el dispositivo ADB cambió a **S23_Pro, Android 8.1,
+360×640**. ParDL se instaló y arrancó sin errores en esa versión.
+
+Probado:
+
+- Inicio rediseñado: el arte del título es el wordmark de cristal y **no se
+  repite “PARDL” en la cabecera** superior.
+- **Navegador web** abre `m.youtube.com` en WebView y permite navegar.
+- El botón **Descargar audio** entrega la URL canónica al motor.
+- `yt-dlp` analizó un vídeo de NASA y devolvió formatos reales:
+  - `OPUS 146 kbps .webm`
+  - `MP4A.40.2 129 kbps .m4a`
+  - `MP4A.40.5 48 kbps .m4a`
+- Se seleccionó M4A 129 kbps (metadatos completos).
+- **Vinculación de metadatos**: Apple Music encontró “The Entertainer” de
+  Scott Joplin, con álbum, año, portada y una coincidencia del **75 %**.
+  La interfaz mostró exactamente qué etiquetas se escribirían.
+- Se creó y seleccionó una carpeta aislada `Download/ParDLTest`.
+- El primer intento de descarga de YouTube devolvió
+  `HTTP Error 403: Forbidden`. ParDL lo mostró y ofreció reintentar; no simuló
+  una descarga correcta.
+- Se actualizó yt-dlp desde Ajustes, que respondió “yt-dlp se actualizó
+  correctamente”. YouTube puede seguir bloqueando según el vídeo, la región y
+  el cliente; la limitación está documentada en `docs/NAVEGADOR.md`.
+
+La carpeta `Download/ParDLTest` se eliminó al terminar. No se descargó ningún
+archivo de YouTube en este dispositivo.
+
+## Limpieza final (segundo dispositivo)
+
+- `Download/ParDLTest`: eliminada (vacía).
+- No se creó ningún archivo de audio completo de YouTube.
+- Se conservó `ParSoundTest`, que ya existía y no era de esta prueba.
+
 ## Limitaciones registradas
 
 - Android puede detener un servicio si el usuario fuerza la detención desde
