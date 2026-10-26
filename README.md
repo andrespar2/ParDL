@@ -4,7 +4,7 @@
 
 Versión **portable para Windows** (sin instalar nada) y **app Android** con **Liquid Glass** (oscuro, claro y AMOLED).
 
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.0-00b4d8.svg)](#)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.1-00b4d8.svg)](#)
 [![Plataforma](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)](#)
 [![Android](https://img.shields.io/badge/Android-7.0%2B-3ddc84.svg)](#)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
