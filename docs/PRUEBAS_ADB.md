@@ -20,7 +20,7 @@ de usuario** (la carpeta SAF y las preferencias se conservaron).
 
 ## Pruebas unitarias
 
-`23` pruebas locales en `app/src/test/java/.../core/music/`:
+`26` pruebas locales en `app/src/test/java/.../core/music/`:
 
 - `QualityRankerTest`: FLAC Hi-Res > FLAC > comprimidos; filtros lossless;
   Dolby Atmos separado; preview al final; mensaje cuando no hay FLAC.
