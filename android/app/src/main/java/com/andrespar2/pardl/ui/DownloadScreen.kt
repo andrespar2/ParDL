@@ -43,6 +43,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -59,6 +60,8 @@ import com.andrespar2.pardl.core.MediaInfo
 import com.andrespar2.pardl.core.Prefs
 import com.andrespar2.pardl.core.QualityChoice
 import com.andrespar2.pardl.core.Storage
+import com.andrespar2.pardl.core.music.MusicRepository
+import com.andrespar2.pardl.core.music.TrackMetadata
 import com.andrespar2.pardl.ui.theme.AccentCyan
 import com.andrespar2.pardl.ui.theme.Danger
 import com.andrespar2.pardl.ui.theme.OutlineSoft
@@ -69,6 +72,7 @@ import com.andrespar2.pardl.ui.theme.TextDim
 import com.andrespar2.pardl.ui.theme.TextPrimary
 import com.andrespar2.pardl.ui.theme.TextSecondary
 import com.andrespar2.pardl.ui.theme.Warning
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @Composable
@@ -81,6 +85,7 @@ fun DownloadScreen(
     val context = LocalContext.current
     val prefs = remember { Prefs.get(context) }
     val scope = rememberCoroutineScope()
+    val focusManager = LocalFocusManager.current
 
     val downloadState by Downloader.state.collectAsState()
     val analyzing by Downloader.analyzing.collectAsState()
@@ -95,6 +100,12 @@ fun DownloadScreen(
     var pendingDownload by remember { mutableStateOf(false) }
     var pickGeneration by remember { mutableStateOf(0) }
     var folderLabel by remember { mutableStateOf(prefs.folderName) }
+    var metadataProvider by remember { mutableStateOf("musicbrainz") }
+    var metadataPreview by remember { mutableStateOf<MusicRepository.MetadataPreview?>(null) }
+    var metadataLoading by remember { mutableStateOf(false) }
+    var metadataError by remember { mutableStateOf<String?>(null) }
+    var bindMetadata by remember { mutableStateOf(false) }
+    var embedCover by remember { mutableStateOf(true) }
 
     val engineReady = engineState is EngineState.Ready
 
@@ -105,10 +116,28 @@ fun DownloadScreen(
         if (Downloader.state.value !is DownloadState.Downloading) {
             Downloader.reset()
         }
+        delay(400)
+        focusManager.clearFocus()
+    }
+
+    LaunchedEffect(info) {
+        if (info != null) {
+            delay(200)
+            focusManager.clearFocus()
+        }
     }
 
     fun currentChoices(): List<QualityChoice> =
-        if (kind == DownloadKind.VIDEO) Format.videoQualityChoices() else Format.audioQualityChoices()
+        if (kind == DownloadKind.VIDEO) {
+            Format.videoQualityChoices()
+        } else {
+            val realFormats = info?.audioFormats.orEmpty()
+            if (realFormats.isNotEmpty()) {
+                Format.audioChoicesFromFormats(realFormats)
+            } else {
+                Format.audioQualityChoices()
+            }
+        }
 
     fun selectedChoice(): QualityChoice =
         currentChoices().firstOrNull { it.key == selectedKey } ?: currentChoices().first()
@@ -117,13 +146,17 @@ fun DownloadScreen(
     fun actuallyStart() {
         val media = info ?: return
         val tree = prefs.treeUri ?: return
+        val targetUrl = media.webpageUrl ?: Format.cleanUrl(url)
         Downloader.start(
             context = context,
-            url = Format.cleanUrl(url),
+            url = targetUrl,
             kind = kind,
             choice = selectedChoice(),
             treeUriString = tree,
-            titleHint = media.title
+            titleHint = media.title,
+            metadata = if (kind == DownloadKind.AUDIO && bindMetadata) metadataPreview?.metadata else null,
+            embedCover = kind == DownloadKind.AUDIO && embedCover,
+            embedLyrics = false
         )
     }
 
@@ -173,9 +206,42 @@ fun DownloadScreen(
             Downloader.analyze(cleaned)
                 .onSuccess { media ->
                     info = media
-                    selectedKey = if (kind == DownloadKind.VIDEO) "7" else Format.defaultAudioChoice().key
+                    url = media.webpageUrl ?: cleaned
+                    metadataPreview = null
+                    metadataError = null
+                    bindMetadata = false
+                    focusManager.clearFocus()
+                    selectedKey = if (kind == DownloadKind.VIDEO) {
+                        "7"
+                    } else {
+                        media.audioFormats.firstOrNull()
+                            ?.let { "fmt:${it.formatId}" }
+                            ?: Format.defaultAudioChoice().key
+                    }
                 }
                 .onFailure { errorMsg = it.message ?: "No se pudo analizar el enlace." }
+        }
+    }
+
+    fun findMetadata() {
+        val media = info ?: return
+        metadataLoading = true
+        metadataError = null
+        metadataPreview = null
+        bindMetadata = false
+        scope.launch {
+            MusicRepository.findMetadata(
+                context = context,
+                title = media.title,
+                artist = media.uploader.orEmpty(),
+                providerId = metadataProvider
+            ).onSuccess {
+                metadataPreview = it
+                bindMetadata = true
+            }.onFailure {
+                metadataError = it.message ?: "No se encontraron metadatos."
+            }
+            metadataLoading = false
         }
     }
 
@@ -234,7 +300,22 @@ fun DownloadScreen(
                     folderLabel = folderLabel,
                     onChangeFolder = { folderLauncher.launch(null) },
                     onAnalyze = { analyze() },
-                    onDownload = { requestDownload() }
+                    onDownload = { requestDownload() },
+                    metadataProvider = metadataProvider,
+                    onMetadataProviderChange = {
+                        metadataProvider = it
+                        metadataPreview = null
+                        metadataError = null
+                        bindMetadata = false
+                    },
+                    metadataPreview = metadataPreview,
+                    metadataLoading = metadataLoading,
+                    metadataError = metadataError,
+                    bindMetadata = bindMetadata,
+                    onBindMetadataChange = { bindMetadata = it },
+                    onFindMetadata = { findMetadata() },
+                    embedCover = embedCover,
+                    onEmbedCoverChange = { embedCover = it }
                 )
             }
 
@@ -259,8 +340,19 @@ private fun FormView(
     folderLabel: String?,
     onChangeFolder: () -> Unit,
     onAnalyze: () -> Unit,
-    onDownload: () -> Unit
+    onDownload: () -> Unit,
+    metadataProvider: String,
+    onMetadataProviderChange: (String) -> Unit,
+    metadataPreview: MusicRepository.MetadataPreview?,
+    metadataLoading: Boolean,
+    metadataError: String?,
+    bindMetadata: Boolean,
+    onBindMetadataChange: (Boolean) -> Unit,
+    onFindMetadata: () -> Unit,
+    embedCover: Boolean,
+    onEmbedCoverChange: (Boolean) -> Unit
 ) {
+    val isOriginalAudio = kind == DownloadKind.AUDIO && choices.any { it.formatId != null }
     Text(
         "Pega el enlace del contenido",
         style = MaterialTheme.typography.bodyMedium,
@@ -273,6 +365,7 @@ private fun FormView(
         onValueChange = onUrlChange,
         modifier = Modifier.fillMaxWidth(),
         singleLine = true,
+        enabled = info == null,
         placeholder = { Text("https://…", color = TextDim) },
         shape = RoundedCornerShape(14.dp),
         keyboardOptions = KeyboardOptions(
@@ -289,8 +382,10 @@ private fun FormView(
             unfocusedContainerColor = Surface1
         ),
         trailingIcon = {
-            TextButton(onClick = onPaste) {
-                Text("Pegar", color = AccentCyan)
+            if (info == null) {
+                TextButton(onClick = onPaste) {
+                    Text("Pegar", color = AccentCyan)
+                }
             }
         }
     )
@@ -330,18 +425,31 @@ private fun FormView(
         Spacer(Modifier.height(18.dp))
 
         Text(
-            if (kind == DownloadKind.VIDEO) "Resolución" else "Calidad del MP3",
+            if (kind == DownloadKind.VIDEO) "Resolución" else "Calidad de audio disponible",
             style = MaterialTheme.typography.titleMedium,
             color = TextPrimary
         )
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(4.dp))
+        if (kind == DownloadKind.AUDIO) {
+            Text(
+                if (isOriginalAudio) {
+                    "Formatos reales del enlace. Se descarga el original sin recodificar; " +
+                        "los metadatos completos dependen del contenedor."
+                } else {
+                    "El motor no declaró formatos de audio; se usará la extracción MP3 indicada."
+                },
+                style = MaterialTheme.typography.bodySmall,
+                color = TextSecondary
+            )
+            Spacer(Modifier.height(8.dp))
+        }
 
         choices.forEach { choice ->
             val available = if (kind == DownloadKind.VIDEO && choice.height > 0) {
                 info.heights.isEmpty() || info.heights.contains(choice.height)
             } else true
             val note = when {
-                kind != DownloadKind.VIDEO -> null
+                kind != DownloadKind.VIDEO -> choice.note
                 choice.height == 0 -> info.heights.maxOrNull()?.let { "hasta ${it}p" }
                 !available -> "no disponible"
                 else -> null
@@ -356,15 +464,211 @@ private fun FormView(
             Spacer(Modifier.height(8.dp))
         }
 
-        Spacer(Modifier.height(8.dp))
+        if (kind == DownloadKind.AUDIO) {
+            Spacer(Modifier.height(8.dp))
+            MetadataBindingSection(
+                provider = metadataProvider,
+                onProviderChange = onMetadataProviderChange,
+                preview = metadataPreview,
+                loading = metadataLoading,
+                error = metadataError,
+                bind = bindMetadata,
+                onBindChange = onBindMetadataChange,
+                onFind = onFindMetadata,
+                embedCover = embedCover,
+                onEmbedCoverChange = onEmbedCoverChange
+            )
+        }
+
+        Spacer(Modifier.height(14.dp))
         FolderRow(folderLabel, onChangeFolder)
         Spacer(Modifier.height(18.dp))
 
         PrimaryButton(
-            text = if (kind == DownloadKind.VIDEO) "Descargar en MP4" else "Extraer audio en MP3",
+            text = when {
+                kind == DownloadKind.VIDEO -> "Descargar en MP4"
+                isOriginalAudio -> "Descargar audio completo"
+                else -> "Extraer audio en MP3"
+            },
             enabled = true,
             onClick = onDownload,
             modifier = Modifier.fillMaxWidth()
+        )
+    }
+}
+
+@Composable
+private fun MetadataBindingSection(
+    provider: String,
+    onProviderChange: (String) -> Unit,
+    preview: MusicRepository.MetadataPreview?,
+    loading: Boolean,
+    error: String?,
+    bind: Boolean,
+    onBindChange: (Boolean) -> Unit,
+    onFind: () -> Unit,
+    embedCover: Boolean,
+    onEmbedCoverChange: (Boolean) -> Unit
+) {
+    val providers = listOf(
+        "musicbrainz" to "MusicBrainz",
+        "apple-music" to "Apple Music",
+        "deezer" to "Deezer",
+        "internet-archive" to "Internet Archive"
+    )
+    Column(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Surface1)
+            .border(1.dp, OutlineSoft, RoundedCornerShape(16.dp))
+            .padding(15.dp)
+    ) {
+        Text(
+            "Metadatos de otro proveedor",
+            style = MaterialTheme.typography.titleMedium,
+            color = TextPrimary
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "El audio mantiene la calidad elegida. Puedes vincular título, artista, álbum, " +
+                "año, portada y créditos desde una fuente distinta.",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary
+        )
+        Spacer(Modifier.height(10.dp))
+        providers.chunked(2).forEach { row ->
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(7.dp)
+            ) {
+                row.forEach { (id, label) ->
+                    Box(
+                        Modifier
+                            .weight(1f)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(if (provider == id) AccentCyan.copy(alpha = 0.18f) else Surface2)
+                            .border(
+                                1.dp,
+                                if (provider == id) AccentCyan else OutlineSoft,
+                                RoundedCornerShape(20.dp)
+                            )
+                            .clickable { onProviderChange(id) }
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            label,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (provider == id) AccentCyan else TextSecondary
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(7.dp))
+        }
+
+        if (loading) {
+            Row(
+                Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CircularProgressIndicator(
+                    Modifier.size(16.dp),
+                    strokeWidth = 2.dp,
+                    color = AccentCyan
+                )
+                Spacer(Modifier.size(8.dp))
+                Text("Buscando coincidencia…", style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+            }
+        }
+
+        if (error != null) {
+            Spacer(Modifier.height(5.dp))
+            Text(error, style = MaterialTheme.typography.bodySmall, color = Danger)
+        }
+
+        if (preview != null) {
+            Spacer(Modifier.height(8.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                CoverArt(preview.metadata.artworkUrl, 56.dp, 13.dp)
+                Spacer(Modifier.size(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        preview.metadata.title.value ?: "Sin título",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        listOfNotNull(
+                            preview.metadata.artist.value,
+                            preview.metadata.album.value,
+                            preview.metadata.year.value
+                        ).joinToString(" · "),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Text(
+                        buildString {
+                            append(preview.providerName)
+                            if (preview.confidence > 0) append(" · coincidencia ").append(preview.confidence).append('%')
+                            else append(" · búsqueda directa")
+                        },
+                        style = MaterialTheme.typography.labelSmall,
+                        color = AccentCyan
+                    )
+                }
+            }
+            Spacer(Modifier.height(6.dp))
+            GlassSwitchRow(
+                title = "Vincular estos metadatos",
+                subtitle = "Se escribirán al finalizar la descarga",
+                checked = bind,
+                onCheckedChange = onBindChange
+            )
+            GlassSwitchRow(
+                title = "Incrustar portada",
+                subtitle = if (preview.metadata.artworkUrl == null) "Esta fuente no aportó portada" else "Se descargará y se escribirá",
+                checked = embedCover && preview.metadata.artworkUrl != null,
+                enabled = preview.metadata.artworkUrl != null,
+                onCheckedChange = onEmbedCoverChange
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                "Se escribirán: " + buildList {
+                    preview.metadata.title.value?.let { add("título") }
+                    preview.metadata.artist.value?.let { add("artista") }
+                    preview.metadata.album.value?.let { add("álbum") }
+                    preview.metadata.year.value?.let { add("año") }
+                    preview.metadata.trackNumber.value?.let { add("pista") }
+                    preview.metadata.genre.value?.let { add("género") }
+                    preview.metadata.isrc.value?.let { add("ISRC") }
+                    preview.metadata.composer.value?.let { add("compositor") }
+                    if (embedCover && preview.metadata.artworkUrl != null) add("portada")
+                }.ifEmpty { listOf("solo etiquetas básicas") }.joinToString(", "),
+                style = MaterialTheme.typography.labelSmall,
+                color = TextSecondary
+            )
+        } else if (!loading) {
+            Spacer(Modifier.height(6.dp))
+            PrimaryButton(
+                text = "Buscar coincidencia",
+                enabled = true,
+                onClick = onFind,
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+
+        Spacer(Modifier.height(7.dp))
+        Text(
+            "Metadatos completos: MP3, M4A, FLAC y WAV. En WebM/Opus se aplican las " +
+                "etiquetas básicas del motor y se conserva el audio original.",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextDim
         )
     }
 }
@@ -399,6 +703,19 @@ private fun MediaCard(info: MediaInfo) {
             Text(
                 "Resoluciones: " + info.heights.joinToString(", ") { "${it}p" },
                 style = MaterialTheme.typography.bodyMedium,
+                color = TextDim
+            )
+        }
+        if (info.audioFormats.isNotEmpty()) {
+            Text(
+                "Audio: " + info.audioFormats.take(4).joinToString(", ") {
+                    buildString {
+                        append(it.acodec.ifBlank { it.ext }.uppercase())
+                        if (it.abrKbps > 0) append(" ").append(it.abrKbps).append(" kbps")
+                        append(" .").append(it.ext)
+                    }
+                },
+                style = MaterialTheme.typography.bodySmall,
                 color = TextDim
             )
         }
@@ -557,6 +874,14 @@ private fun SuccessView(
         Text(
             "Guardado en: ${state.savedTo}",
             style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary
+        )
+    }
+    if (!state.metadataReport.isNullOrBlank()) {
+        Spacer(Modifier.height(8.dp))
+        Text(
+            state.metadataReport,
+            style = MaterialTheme.typography.bodySmall,
             color = TextSecondary
         )
     }

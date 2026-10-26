@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import com.andrespar2.pardl.ui.theme.AccentBlue
 import com.andrespar2.pardl.ui.theme.AccentCyan
 import com.andrespar2.pardl.ui.theme.AccentTeal
+import com.andrespar2.pardl.ui.theme.AccentViolet
 import com.andrespar2.pardl.ui.theme.LocalGlass
 import com.andrespar2.pardl.ui.theme.TextPrimary
 import com.andrespar2.pardl.ui.theme.TextSecondary
@@ -49,19 +50,39 @@ fun ParDLBanner(modifier: Modifier = Modifier) {
     ) {
         val cell = size.height / rows
         val startX = (size.width - cols * cell) / 2f
+        val inset = cell * 0.11f
+        val tile = cell - 2 * inset
+        val corner = androidx.compose.ui.geometry.CornerRadius(tile * 0.26f)
         val brush = Brush.horizontalGradient(
-            colors = listOf(AccentCyan, AccentTeal, AccentBlue, AccentBlue),
+            colors = listOf(AccentCyan, AccentTeal, AccentBlue, AccentViolet),
             startX = 0f,
             endX = size.width
         )
         grid.forEachIndexed { r, row ->
             row.forEachIndexed { c, on ->
                 if (on) {
-                    val inset = cell * 0.08f
-                    drawRect(
+                    val x = startX + c * cell + inset
+                    val y = r * cell + inset
+                    // Halo de cristal
+                    drawRoundRect(
+                        color = AccentCyan.copy(alpha = 0.10f),
+                        topLeft = Offset(x - inset * 0.9f, y - inset * 0.9f),
+                        size = Size(tile + inset * 1.8f, tile + inset * 1.8f),
+                        cornerRadius = corner
+                    )
+                    // Azulejo con degradado
+                    drawRoundRect(
                         brush = brush,
-                        topLeft = Offset(startX + c * cell + inset, r * cell + inset),
-                        size = Size(cell - 2 * inset, cell - 2 * inset)
+                        topLeft = Offset(x, y),
+                        size = Size(tile, tile),
+                        cornerRadius = corner
+                    )
+                    // Reflejo superior
+                    drawRoundRect(
+                        color = Color.White.copy(alpha = 0.18f),
+                        topLeft = Offset(x + tile * 0.12f, y + tile * 0.10f),
+                        size = Size(tile * 0.76f, tile * 0.22f),
+                        cornerRadius = androidx.compose.ui.geometry.CornerRadius(tile * 0.10f)
                     )
                 }
             }

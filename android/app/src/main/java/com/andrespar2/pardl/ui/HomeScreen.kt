@@ -68,6 +68,7 @@ fun HomeScreen(
     onDownloads: () -> Unit,
     onHistory: () -> Unit,
     onProviders: () -> Unit,
+    onBrowser: () -> Unit,
     onSites: () -> Unit,
     onSettings: () -> Unit,
     onAbout: () -> Unit
@@ -92,13 +93,12 @@ fun HomeScreen(
         ) {
             Column(Modifier.weight(1f)) {
                 Text(
-                    "PARDL",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = glass.textPrimary,
-                    letterSpacing = 7.sp
+                    "Música y multimedia",
+                    style = MaterialTheme.typography.titleLarge,
+                    color = glass.textPrimary
                 )
                 Text(
-                    "Música y multimedia · v${AppInfo.VERSION}",
+                    "ParDL v${AppInfo.VERSION} · Liquid Glass",
                     style = MaterialTheme.typography.bodySmall,
                     color = glass.textSecondary
                 )
@@ -200,6 +200,13 @@ fun HomeScreen(
 
         Spacer(Modifier.height(18.dp))
         SectionHeader("Más")
+        MenuCard(
+            title = "Navegador web",
+            subtitle = "YouTube, SoundCloud, Bandcamp… y descarga el audio completo",
+            accent = true,
+            onClick = onBrowser
+        )
+        Spacer(Modifier.height(8.dp))
         MenuCard(
             title = "Sitios compatibles",
             subtitle = "Qué webs puedes usar con el motor yt-dlp",

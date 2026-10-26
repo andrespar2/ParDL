@@ -54,6 +54,15 @@ object MusicRepository {
         val readyCount: Int get() = items.count { it.selected != null }
     }
 
+    data class MetadataPreview(
+        val providerId: String,
+        val providerName: String,
+        val matchedTrack: TrackCandidate?,
+        val metadata: TrackMetadata,
+        val confidence: Int,
+        val reasons: List<String>
+    )
+
     private val _health = MutableStateFlow<Map<String, ProviderTestResult>>(emptyMap())
     val health: StateFlow<Map<String, ProviderTestResult>> = _health.asStateFlow()
 
@@ -378,6 +387,149 @@ object MusicRepository {
             }
         )
     }
+
+    /**
+     * Busca metadatos de una pista de audio descargada por el motor clásico
+     * (por ejemplo un enlace de YouTube) en un proveedor distinto.
+     */
+    suspend fun findMetadata(
+        context: Context,
+        title: String,
+        artist: String,
+        providerId: String
+    ): Result<MetadataPreview> = withContext(Dispatchers.IO) {
+        val provider = MusicProviders.byId(providerId)
+            ?: return@withContext Result.failure(
+                IllegalArgumentException("Proveedor de metadatos desconocido.")
+            )
+        if (provider !is MusicMetadataProvider && provider !is MusicSearchProvider) {
+            return@withContext Result.failure(
+                IllegalArgumentException("${provider.info.name} no aporta metadatos.")
+            )
+        }
+        val cleanTitle = cleanSongTitle(title)
+        val cleanArtist = cleanArtistName(artist)
+        if (cleanTitle.isBlank()) {
+            return@withContext Result.failure(
+                IllegalArgumentException("El título está vacío; no se puede buscar.")
+            )
+        }
+        val variants = linkedSetOf<Pair<String, String>>()
+        variants += cleanTitle to cleanArtist.ifBlank { "Artista desconocido" }
+        val split = cleanTitle.split(Regex("""\s+-\s+"""), limit = 2)
+        if (split.size == 2) {
+            val left = split[0].trim()
+            val right = split[1].trim()
+            if (left.length in 2..70 && right.length >= 2) {
+                variants += right to left
+            }
+        }
+
+        if (provider is MusicSearchProvider) {
+            var bestPreview: MetadataPreview? = null
+            for ((variantTitle, variantArtist) in variants) {
+                val synthetic = TrackCandidate(
+                    id = "external:$variantTitle:$variantArtist",
+                    providerId = providerId,
+                    providerName = provider.info.name,
+                    title = variantTitle,
+                    artist = variantArtist,
+                    album = null,
+                    durationSec = 0
+                )
+                val results = runCatching {
+                    provider.search(
+                        MusicQuery("$variantTitle $variantArtist", SearchMode.SONG)
+                    )
+                }.getOrElse { t ->
+                    if (bestPreview == null) {
+                        return@withContext Result.failure(
+                            IllegalStateException(
+                                "${provider.info.name}: ${t.message ?: "error de búsqueda"}"
+                            )
+                        )
+                    }
+                    emptyList()
+                }
+                if (results.isEmpty()) continue
+                val match = TrackMatchEngine.match(synthetic, results)
+                val best = match.best?.track ?: continue
+                val metadata = if (provider is MusicMetadataProvider) {
+                    runCatching { provider.metadata(best) }.getOrNull()
+                } else null
+                val preview = MetadataPreview(
+                    providerId = providerId,
+                    providerName = provider.info.name,
+                    matchedTrack = best,
+                    metadata = (metadata ?: TrackMetadata()).withFallbackTrack(best),
+                    confidence = match.best.score,
+                    reasons = match.best.reasons
+                )
+                if (bestPreview == null || preview.confidence > bestPreview.confidence) {
+                    bestPreview = preview
+                }
+            }
+            return@withContext bestPreview?.let { Result.success(it) }
+                ?: Result.failure(
+                    IllegalStateException(
+                        "${provider.info.name} no encontró una coincidencia fiable."
+                    )
+                )
+        }
+
+        for ((variantTitle, variantArtist) in variants) {
+            val synthetic = TrackCandidate(
+                id = "external:$variantTitle:$variantArtist",
+                providerId = providerId,
+                providerName = provider.info.name,
+                title = variantTitle,
+                artist = variantArtist,
+                album = null,
+                durationSec = 0
+            )
+            val metadata = runCatching {
+                (provider as MusicMetadataProvider).metadata(synthetic)
+            }.getOrNull()
+            if (metadata != null) {
+                return@withContext Result.success(
+                    MetadataPreview(
+                        providerId = providerId,
+                        providerName = provider.info.name,
+                        matchedTrack = null,
+                        metadata = metadata.withFallbackTrack(synthetic),
+                        confidence = 0,
+                        reasons = listOf("Búsqueda directa por título y artista")
+                    )
+                )
+            }
+        }
+        Result.failure(
+            IllegalStateException("${provider.info.name} no encontró metadatos compatibles.")
+        )
+    }
+
+    private fun cleanSongTitle(raw: String): String {
+        var value = raw.trim()
+        value = value.replace(
+            Regex(
+                """\s*[\(\[][^)\]]*(official|video|audio|lyrics|letra|visualizer|hd|4k|remaster)[^)\]]*[\)\]]""",
+                RegexOption.IGNORE_CASE
+            ),
+            ""
+        )
+        value = value.replace(
+            Regex("""\s*[-–|]\s*(official|video|audio|lyrics|letra).*$""", RegexOption.IGNORE_CASE),
+            ""
+        )
+        value = value.replace(
+            Regex(""",?\s*(public domain|dominio público|creative commons).*$""", RegexOption.IGNORE_CASE),
+            ""
+        )
+        return value.replace(Regex("\\s+"), " ").trim().trim(',', '-', '–')
+    }
+
+    private fun cleanArtistName(raw: String): String =
+        raw.replace(Regex("""\s*-\s*Topic$""", RegexOption.IGNORE_CASE), "").trim()
 
     suspend fun prepareBatch(
         context: Context,

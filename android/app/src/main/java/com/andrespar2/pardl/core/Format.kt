@@ -31,6 +31,42 @@ object Format {
 
     fun defaultAudioChoice(): QualityChoice = audioQualityChoices()[1] // 192 kbps
 
+    /**
+     * Construye opciones a partir de los formatos de audio reales de yt-dlp.
+     * No se inventan bitrates: se muestra el `abr` declarado y se conserva el
+     * contenedor original (sin recodificar).
+     */
+    fun audioChoicesFromFormats(formats: List<AudioFormatOption>): List<QualityChoice> =
+        formats
+            .distinctBy { it.formatId }
+            .sortedByDescending { it.abrKbps }
+            .map { format ->
+                val ext = format.ext.lowercase()
+                val codec = format.acodec.ifBlank { ext }.uppercase()
+                QualityChoice(
+                    key = "fmt:${format.formatId}",
+                    label = buildString {
+                        append(codec)
+                        if (format.abrKbps > 0) append(" · ").append(format.abrKbps).append(" kbps")
+                        append(" · .").append(ext)
+                    },
+                    kbps = format.abrKbps,
+                    formatId = format.formatId,
+                    ext = ext,
+                    codec = format.acodec,
+                    note = listOfNotNull(
+                        format.note?.takeIf { it.isNotBlank() },
+                        metadataSupportNote(ext)
+                    ).joinToString(" · ")
+                )
+            }
+
+    private fun metadataSupportNote(ext: String): String = when (ext) {
+        "mp3", "m4a", "mp4", "flac", "wav", "aiff", "aif" -> "Metadatos completos"
+        "webm", "opus", "ogg", "oga" -> "Etiquetas básicas del motor"
+        else -> "Formato original"
+    }
+
     // ------------------------------------------------------------------
     // Selección de formato para yt-dlp
     // ------------------------------------------------------------------

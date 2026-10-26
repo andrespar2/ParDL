@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -479,6 +480,7 @@ fun GlassTextField(
     singleLine: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     imeAction: ImeAction = ImeAction.Search,
+    keyboardActions: KeyboardActions? = null,
     enabled: Boolean = true
 ) {
     val glass = LocalGlass.current
@@ -496,6 +498,7 @@ fun GlassTextField(
         enabled = enabled,
         shape = RoundedCornerShape(18.dp),
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType, imeAction = imeAction),
+        keyboardActions = keyboardActions ?: KeyboardActions.Default,
         colors = OutlinedTextFieldDefaults.colors(
             focusedBorderColor = glass.accent,
             unfocusedBorderColor = glass.glassBorder,

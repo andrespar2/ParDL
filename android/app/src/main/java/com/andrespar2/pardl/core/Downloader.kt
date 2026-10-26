@@ -2,7 +2,10 @@ package com.andrespar2.pardl.core
 
 import android.content.Context
 import android.net.Uri
+import com.andrespar2.pardl.core.music.ArtworkLoader
+import com.andrespar2.pardl.core.music.AudioMetadataWriter
 import com.andrespar2.pardl.core.music.HistoryStore
+import com.andrespar2.pardl.core.music.TrackMetadata
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
 import kotlinx.coroutines.CoroutineScope
@@ -72,11 +75,19 @@ object Downloader {
         kind: DownloadKind,
         choice: QualityChoice,
         treeUriString: String?,
-        titleHint: String
+        titleHint: String,
+        metadata: TrackMetadata? = null,
+        embedCover: Boolean = false,
+        embedLyrics: Boolean = false
     ) {
         if (_state.value is DownloadState.Downloading) return
         LegacyDownloadService.start(context)
-        scope.launch { runDownload(context.applicationContext, url, kind, choice, treeUriString, titleHint) }
+        scope.launch {
+            runDownload(
+                context.applicationContext, url, kind, choice, treeUriString,
+                titleHint, metadata, embedCover, embedLyrics
+            )
+        }
     }
 
     /** Cancela el proceso en curso (análisis o descarga). */
@@ -101,7 +112,10 @@ object Downloader {
         kind: DownloadKind,
         choice: QualityChoice,
         treeUriString: String?,
-        titleHint: String
+        titleHint: String,
+        metadata: TrackMetadata?,
+        embedCover: Boolean,
+        embedLyrics: Boolean
     ) = withContext(Dispatchers.IO) {
         if (treeUriString.isNullOrBlank()) {
             _state.value = DownloadState.Failure(
@@ -132,6 +146,10 @@ object Downloader {
                 request.addOption("-f", sel.format)
                 request.addOption("-S", sel.sort)
                 request.addOption("--merge-output-format", "mp4")
+                request.addOption("--embed-metadata")
+            } else if (!choice.formatId.isNullOrBlank()) {
+                // Se conserva el formato y códec originales: no se recodifica.
+                request.addOption("-f", choice.formatId)
                 request.addOption("--embed-metadata")
             } else {
                 val kbps = if (choice.kbps > 0) choice.kbps else 192
@@ -164,18 +182,32 @@ object Downloader {
             }
 
             val sizeText = Format.formatFileSize(produced.length())
+            var metadataReport: String? = null
+            if (kind == DownloadKind.AUDIO && metadata != null) {
+                val cover = if (embedCover) ArtworkLoader.fetch(metadata.artworkUrl) else null
+                val report = AudioMetadataWriter.write(
+                    file = produced,
+                    metadata = metadata,
+                    cover = cover,
+                    embedCover = embedCover,
+                    embedLyrics = embedLyrics,
+                    embedMetadata = true
+                )
+                metadataReport = report.summary
+            }
             val saved = Storage.copyIntoTreeSaved(context, Uri.parse(treeUriString), produced)
             val folder = Prefs.get(context).folderName
+            val formatLabel = choice.ext?.uppercase()?.takeIf { it.isNotBlank() } ?: "MP3"
             HistoryStore.record(
                 context,
                 HistoryStore.Entry(
                     id = "legacy-${System.currentTimeMillis()}",
-                    kind = if (kind == DownloadKind.VIDEO) "Video MP4" else "Audio MP3",
+                    kind = if (kind == DownloadKind.VIDEO) "Video MP4" else "Audio $formatLabel",
                     title = titleHint,
                     quality = choice.label,
                     fileName = saved.name,
                     uri = saved.uri.toString(),
-                    detail = sizeText,
+                    detail = listOfNotNull(sizeText, metadataReport).joinToString(" · "),
                     success = true
                 )
             )
@@ -183,8 +215,9 @@ object Downloader {
             _state.value = DownloadState.Success(
                 fileName = saved.name,
                 savedTo = folder,
-                detail = sizeText,
-                savedUri = saved.uri.toString()
+                detail = listOfNotNull(sizeText, metadataReport).joinToString(" · "),
+                savedUri = saved.uri.toString(),
+                metadataReport = metadataReport
             )
             jobDir.deleteRecursively()
         } catch (c: YoutubeDL.CanceledException) {
@@ -228,6 +261,7 @@ object Downloader {
 
         val heights = sortedSetOf<Int>()
         var hasAudioOnly = false
+        val audioFormats = mutableListOf<AudioFormatOption>()
         val formats = obj.optJSONArray("formats")
         if (formats != null) {
             for (i in 0 until formats.length()) {
@@ -238,6 +272,25 @@ object Downloader {
                 val a = f.optString("acodec")
                 if ((v.isEmpty() || v == "none") && a.isNotEmpty() && a != "none") {
                     hasAudioOnly = true
+                    val formatId = f.optString("format_id")
+                    val ext = f.optString("ext")
+                    val abr = f.optDouble("abr", f.optDouble("tbr", 0.0)).toInt()
+                    val size = f.optLong("filesize", 0L).takeIf { it > 0 }
+                        ?: f.optLong("filesize_approx", 0L).takeIf { it > 0 }
+                    val sampleRate = f.optInt("asr", 0).takeIf { it > 0 }
+                    val channels = f.optInt("audio_channels", 0).takeIf { it > 0 }
+                    if (formatId.isNotBlank() && ext.isNotBlank()) {
+                        audioFormats += AudioFormatOption(
+                            formatId = formatId,
+                            ext = ext,
+                            acodec = a,
+                            abrKbps = abr.coerceAtLeast(0),
+                            sampleRateHz = sampleRate,
+                            channels = channels,
+                            filesizeBytes = size,
+                            note = f.optString("format_note").ifBlank { null }
+                        )
+                    }
                 }
             }
         }
@@ -247,7 +300,12 @@ object Downloader {
             uploader = uploader,
             durationSec = duration,
             heights = heights.toList(),
-            hasAudio = hasAudioOnly || heights.isNotEmpty()
+            hasAudio = hasAudioOnly || heights.isNotEmpty(),
+            audioFormats = audioFormats
+                .distinctBy { "${it.acodec}|${it.abrKbps}|${it.ext}|${it.channels ?: 0}" }
+                .sortedByDescending { it.abrKbps },
+            thumbnailUrl = obj.optString("thumbnail").ifBlank { null },
+            webpageUrl = obj.optString("webpage_url").ifBlank { null }
         )
     }
 

@@ -25,6 +25,7 @@ sealed interface Screen {
     data object Downloads : Screen
     data object History : Screen
     data object Providers : Screen
+    data object Browser : Screen
     data object Sites : Screen
     data object Settings : Screen
     data object About : Screen
@@ -85,6 +86,7 @@ fun ParDLAppRoot(
                     onDownloads = { screen = Screen.Downloads },
                     onHistory = { screen = Screen.History },
                     onProviders = { screen = Screen.Providers },
+                    onBrowser = { screen = Screen.Browser },
                     onSites = { screen = Screen.Sites },
                     onSettings = { screen = Screen.Settings },
                     onAbout = { screen = Screen.About }
@@ -118,6 +120,14 @@ fun ParDLAppRoot(
 
                 is Screen.History -> HistoryScreen(onBack = { screen = Screen.Home })
                 is Screen.Providers -> ProvidersScreen(onBack = { screen = Screen.Home })
+                is Screen.Browser -> BrowserScreen(
+                    onBack = { screen = Screen.Home },
+                    onDownload = { url, kind ->
+                        prefillUrl = url
+                        downloadNonce++
+                        screen = Screen.Download(kind, downloadNonce)
+                    }
+                )
                 is Screen.Sites -> SitesScreen(onBack = { screen = Screen.Home })
                 is Screen.Settings -> SettingsScreen(onBack = { screen = Screen.Home })
                 is Screen.About -> AboutScreen(onBack = { screen = Screen.Home })
