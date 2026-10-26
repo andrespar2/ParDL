@@ -1,0 +1,247 @@
+{
+  "version": 1,
+  "updated_at": "2026-10-23T00:00:00Z",
+  "extensions": [
+    {
+      "id": "spotify-web",
+      "name": "spotify-web",
+      "display_name": "Spotify Web",
+      "version": "1.10.2",
+      "description": "Spotify metadata provider for Mornye with complete native release, disc, catalog ID, credits, and artwork metadata plus guarded genre enrichment.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/spotify-web.sflx",
+      "sha256": "26f4f8de8efae21d4668cac07e57e82965d796c36c9534ee6828c6efba67f81e",
+      "category": "integration",
+      "tags": [
+        "spotify",
+        "web",
+        "streaming",
+        "homefeed"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-08-26T00:00:00Z",
+      "min_app_version": "4.3.0"
+    },
+    {
+      "id": "amazon",
+      "name": "amazon",
+      "display_name": "Amazon Music",
+      "version": "2.3.14",
+      "description": "Amazon Music metadata & download provider for Mornye. Includes complete Amazon Web release metadata, original-resolution artwork, lossless audio, and Dolby Atmos.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/amzn.sflx",
+      "sha256": "d45e105b4286d4c7ddc062b73b8190c93099e7f6e4d4586b420e0b31dabcb967",
+      "category": "download",
+      "tags": [
+        "amazon",
+        "download",
+        "lossless",
+        "metadata",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.1"
+    },
+    {
+      "id": "apple-music",
+      "name": "apple-music",
+      "display_name": "Apple Music",
+      "version": "1.4.14",
+      "description": "Apple Music metadata and lyrics provider for Mornye with guarded track matching, bounded caching, resilient requests, and complete release metadata.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/apple-music.sflx",
+      "sha256": "6a45c61e608bd59ad6a000ceedc6ee4ef533599408fd30ea8e673669af86ef17",
+      "category": "integration",
+      "tags": [
+        "apple",
+        "metadata",
+        "lyrics",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.2.3"
+    },
+    {
+      "id": "soundcloud",
+      "name": "soundcloud",
+      "display_name": "SoundCloud",
+      "version": "1.0.11",
+      "description": "SoundCloud metadata and download provider. Search tracks, albums, playlists, artists. Downloads via direct SoundCloud streams.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/soundcloud.sflx",
+      "sha256": "19ff9fdab8141f9a5839120ac898cf01c8c6c7a31fbd1756467d0b15d73ae80b",
+      "category": "download",
+      "tags": [
+        "soundcloud",
+        "download",
+        "metadata",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.1"
+    },
+    {
+      "id": "ytmusic-spotiflac",
+      "name": "ytmusic-spotiflac",
+      "display_name": "YouTube Music",
+      "version": "2.4.4",
+      "description": "YouTube Music metadata and download provider with native album, artist, explicit, release, and song-credit metadata plus validated catalog enrichment.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/ytmusic-spotiflac.sflx",
+      "sha256": "bf88cf556df132402c4235a2660e941e7135c6d052a4aa204f8a51cd812f8c1e",
+      "icon_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/icons/ytmusic-spotiflac.jpg",
+      "category": "download",
+      "tags": [
+        "youtube",
+        "ytmusic",
+        "metadata",
+        "search",
+        "homefeed",
+        "download"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-23T00:00:00Z",
+      "min_app_version": "4.5.1"
+    },
+    {
+      "id": "deezer",
+      "name": "deezer",
+      "display_name": "Deezer",
+      "version": "1.3.7",
+      "description": "Deezer metadata and lossless download provider with complete release, disc, barcode, credits, explicit, genre, rights, link, and high-resolution artwork metadata.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/deezer.sflx",
+      "sha256": "39868171eee142f21de323b38c2ee5690e44659496f8e70e01554564b464f292",
+      "category": "download",
+      "tags": [
+        "deezer",
+        "download",
+        "lossless",
+        "metadata",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.1"
+    },
+    {
+      "id": "qobuz-web",
+      "name": "qobuz-web",
+      "display_name": "Qobuz",
+      "version": "1.2.23",
+      "description": "Qobuz metadata and download provider for Mornye with resilient album search and track recovery, complete release metadata, credits, multi-disc totals, and original artwork.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/qobuz-web.sflx",
+      "sha256": "054c1d2c40058b49f5ade17a64442014ddf05944663a12c790a17d63ee99985f",
+      "category": "download",
+      "tags": [
+        "qobuz",
+        "download",
+        "lossless",
+        "metadata",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.1"
+    },
+    {
+      "id": "tidal-web",
+      "name": "tidal-web",
+      "display_name": "Tidal",
+      "version": "1.2.9",
+      "description": "TIDAL metadata, search, and download provider for Mornye with complete release, credits, explicit, and disc metadata from TIDAL Web.",
+      "download_url": "https://raw.githubusercontent.com/zarzet/SpotiFLAC-Extension/main/extensions/tidal-web.sflx",
+      "sha256": "69ce52eabdd9df6464a30b793b802d3d7be32b331082c02a9bf2b25d1d49114d",
+      "category": "download",
+      "tags": [
+        "tidal",
+        "download",
+        "lossless",
+        "metadata",
+        "search"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.0"
+    },
+    {
+      "id": "bugs-music",
+      "name": "bugs-music",
+      "display_name": "Bugs Music",
+      "version": "2.0.4",
+      "description": "Bugs Music metadata provider with accurate track and album details, artist catalogs, TOP100, genre charts, and URL imports.",
+      "download_url": "https://raw.githubusercontent.com/spotiflacapp/SpotiFLAC-Extension/main/extensions/bugs-music.sflx",
+      "sha256": "a20fbc9675ef9fae526be360b74631d02e74b785c57590b3494a20297bf4ec6f",
+      "category": "integration",
+      "tags": [
+        "bugs",
+        "korean",
+        "metadata",
+        "search",
+        "homefeed"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-23T00:00:00Z",
+      "min_app_version": "3.0.1"
+    },
+    {
+      "id": "melon-music",
+      "name": "melon-music",
+      "display_name": "Melon Music",
+      "version": "2.0.4",
+      "description": "Melon Music metadata provider with song search, album and artist catalogs, DJ playlists, separate TOP100 and HOT100 charts, and URL imports.",
+      "download_url": "https://raw.githubusercontent.com/spotiflacapp/SpotiFLAC-Extension/main/extensions/melon-music.sflx",
+      "sha256": "b40d17d70bd8c3395dd948e64dc815b0f29425913632b4fa54cc1d781eb3b94f",
+      "category": "integration",
+      "tags": [
+        "melon",
+        "korean",
+        "metadata",
+        "search",
+        "homefeed",
+        "playlist"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-23T00:00:00Z",
+      "min_app_version": "3.0.1"
+    },
+    {
+      "id": "genie-music",
+      "name": "genie-music",
+      "display_name": "Genie Music",
+      "version": "2.0.4",
+      "description": "Genie Music metadata provider with track details, albums, paginated artist catalogs, TOP200, genre charts, and URL imports.",
+      "download_url": "https://raw.githubusercontent.com/spotiflacapp/SpotiFLAC-Extension/main/extensions/genie-music.sflx",
+      "sha256": "9ae3e2505bd08969575d001a7262e47323b827860682a52cf1253114becca331",
+      "category": "integration",
+      "tags": [
+        "genie",
+        "korean",
+        "metadata",
+        "search",
+        "homefeed"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-23T00:00:00Z",
+      "min_app_version": "3.0.1"
+    },
+    {
+      "id": "jiosaavn",
+      "name": "jiosaavn",
+      "display_name": "JioSaavn",
+      "version": "1.0.8",
+      "description": "Search and download JioSaavn AAC tracks, with album, playlist, artist metadata and a home feed.",
+      "download_url": "https://raw.githubusercontent.com/spotiflacapp/SpotiFLAC-Extension/main/extensions/jiosaavn.sflx",
+      "sha256": "be9a231337d7c2b8145c806c5a72f2f1052691ff830c612ac2a0d4e344ec0a92",
+      "icon_url": "https://raw.githubusercontent.com/spotiflacapp/SpotiFLAC-Extension/main/icons/jiosaavn.png",
+      "category": "download",
+      "tags": [
+        "jiosaavn",
+        "metadata",
+        "search",
+        "homefeed",
+        "download"
+      ],
+      "downloads": 0,
+      "updated_at": "2026-10-22T00:00:00Z",
+      "min_app_version": "4.9.5"
+    }
+  ]
+}

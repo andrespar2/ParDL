@@ -2,9 +2,9 @@
 
 **Descargador multimedia para Windows y Android** — videos en **MP4** y audio en **MP3** desde enlaces compatibles, eligiendo la calidad y la carpeta de descarga.
 
-Versión **portable para Windows** (sin instalar nada) y **app Android** con estilo negro AMOLED.
+Versión **portable para Windows** (sin instalar nada) y **app Android** con **Liquid Glass** (oscuro, claro y AMOLED).
 
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.1.0-00b4d8.svg)](#)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.2.0-00b4d8.svg)](#)
 [![Plataforma](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)](#)
 [![Android](https://img.shields.io/badge/Android-7.0%2B-3ddc84.svg)](#)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
@@ -35,6 +35,15 @@ Todo el proyecto (interfaz, mensajes, documentación y avisos) está **en españ
 
 - 🎬 **Descarga de video en MP4** con las pistas de audio y video unidas automáticamente.
 - 🎵 **Extracción de audio a MP3** con la tasa de bits que elijas.
+- 💎 **Música — Alta calidad** en Android: búsqueda multiproveedor, **FLAC primero**,
+  calidades reales verificadas, selector manual, metadatos, portadas, letras y
+  descargas persistentes en segundo plano. Ver [docs/MUSICA.md](docs/MUSICA.md).
+- 🧭 **Proveedores con estado real**: Internet Archive, Apple Music (metadatos y
+  vista previa), Deezer (metadatos y vista previa), MusicBrainz, LRCLIB y enlaces
+  directos. TIDAL aparece como preferido configurable, sin simular descargas.
+- 🔐 **Auditoría de extensiones**: los 12 `.sflx` de `registry.json` se verificaron
+  por SHA-256 y se inspeccionaron sin ejecutar. Ver
+  [docs/MUSICA_AUDITORIA.md](docs/MUSICA_AUDITORIA.md).
 - 🎯 **Selección de calidad real**: ParDL comprueba qué resoluciones ofrece el enlace y solo propone las que existen.
 - 📦 **100 % portable**: funciona desde una carpeta o una memoria USB, con rutas relativas.
 - 🖥️ **Interfaz de consola elegante**, con banner ASCII, colores discretos y menús claros, en español.
