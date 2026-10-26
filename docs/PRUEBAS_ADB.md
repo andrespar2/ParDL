@@ -1,203 +1,69 @@
-# Pruebas reales con ADB
+# Pruebas de aceptación
 
-Dispositivo: **Samsung SM-A165M**, Android **16**, `arm64-v8a`, pantalla
-1080×2340 (450 dpi físico, 292 dpi override). Paquete ParDL:
-`com.andrespar2.pardl`, versión `0.2.0` (versionCode 2).
+Documento técnico de pruebas de ParDL en Android. No incluye datos personales
+ni detalles de dispositivos concretos.
 
-## Instalación
+## Entorno
 
-```powershell
-adb devices -l
-.\gradlew.bat :app:testDebugUnitTest
-.\gradlew.bat :app:assembleRelease
-adb install -r app\build\outputs\apk\release\app-release.apk
-```
-
-La primera instalación con el APK de depuración falló por firma distinta
-(`INSTALL_FAILED_UPDATE_INCOMPATIBLE`). Se compiló y firmó con
-`android/pardl-release.keystore`; `adb install -r` actualizó **sin borrar datos
-de usuario** (la carpeta SAF y las preferencias se conservaron).
+- Android 7.0 o superior, con WebView actualizado.
+- Dispositivos `arm64-v8a` y `x86_64`.
+- Resoluciones de pantalla pequeñas y grandes.
+- Instalación con `adb install -r`, conservando datos cuando la firma coincide.
 
 ## Pruebas unitarias
 
-`26` pruebas locales en `app/src/test/java/.../core/music/`:
+`28` pruebas locales:
 
-- `QualityRankerTest`: FLAC Hi-Res > FLAC > comprimidos; filtros lossless;
-  Dolby Atmos separado; preview al final; mensaje cuando no hay FLAC.
-- `TrackMatchEngineTest`: ISRC, título/artista/álbum/duración, versiones
-  live/estudio y ambigüedad.
-- `AudioProbeTest`: FLAC 24/96, FLAC 16/44.1, MP3 128, WAV PCM y firma Ogg.
-- `UrlRouterTest`: Spotify, Apple, Deezer, TIDAL, YouTube, Archive, archivo
-  directo, normalización de mayúsculas.
+- `QualityRankerTest`: prioridad FLAC/Hi-Res, filtros lossless, audio espacial,
+  vistas previas y mensajes de disponibilidad.
+- `TrackMatchEngineTest`: ISRC, título, artistas, álbum, duración, versiones y
+  ambigüedad.
+- `AudioProbeTest`: FLAC 24/96, FLAC 16/44.1, MP3, WAV y Ogg.
+- `UrlRouterTest`: Spotify, Apple, Deezer, TIDAL, YouTube, Internet Archive,
+  archivos directos y normalización de enlaces.
+- `FormatTest`: conversión de formatos reales de yt-dlp en opciones de calidad.
 
-Resultado: **BUILD SUCCESSFUL**, todas pasan.
+Resultado: todas superadas.
 
-## Pruebas funcionales en el dispositivo
+## Funciones verificadas
 
-### Búsqueda
+### Música
 
-- Texto `Beethoven symphony 5` → 54 resultados combinados de Internet Archive
-  y Deezer, con portada, artista, álbum, duración y proveedor.
-- Enlace `https://archive.org/details/KonarWali` → el ítem se rechazó
-  correctamente: sus archivos tienen `private=true` y el nodo de descarga
-  devuelve HTTP 401. ParDL mostró “no contiene archivos de audio compatibles”,
-  sin inventar una descarga.
-- Enlace público `https://archive.org/details/Kramden_Comes` → FLAC, WAV, MP3 y
-  Vorbis de la misma pista. FLAC seleccionado como **Recomendado** y marcado
-  **Verificado** (STREAMINFO 16 bit / 22.1 kHz).
-- Enlace de Apple Music → identificación correcta, portada 600×600, género Pop,
-  año 2013, pista 8, disco 1 y vista previa AAC 278 kbps / 30 s.
-- Enlace de archivo directo de Archive (FLAC 24/48, 73.7 MB) → sonda Range
-  verificada antes de descargar.
+- Búsqueda combinada por texto y enlaces.
+- Prioridad FLAC y alternativas reales cuando no hay FLAC.
+- Formatos verificados mediante STREAMINFO/MP3/Vorbis/WAV.
+- Descarga y etiquetado FLAC, MP3, M4A y WAV.
+- Portada incrustada y comprobación del archivo final.
+- Pausa, reanudación y descarga en segundo plano con notificación.
+- Recuperación de la cola al volver a abrir la app.
 
-### Descargas y metadatos
+### Navegador
 
-| Prueba | Resultado |
-|---|---|
-| FLAC desde Internet Archive | Guardado, etiquetas Vorbis + PICTURE, SHA-256 calculado |
-| MP3 desde Internet Archive | ID3v2.4 con TIT2/TPE1/TALB/TPE2/TDRC y APIC |
-| M4A de Apple Music | Átomos `©nam`, `©ART`, `aART`, `©alb`, `©day`, `©gen`, `trkn`, `disk`, `covr` |
-| FLAC 24/48 grande | 73.7 MB, verificado a 1546 kbps |
+- Carga de páginas y navegación con historial.
+- Resolución de la URL del video en reproducción aunque la barra superior
+  muestre otra dirección.
+- Análisis de formatos de audio reales (Opus/WebM, AAC/M4A, MP3…).
+- Cancelación del análisis y tiempo de espera máximo.
+- Selección de carpeta y confirmación antes de descargar.
 
-Verificación externa con scripts propios:
+### Metadatos
 
-- FLAC: `STREAMINFO 22050 Hz, 1 canal, 16 bit`; `VENDOR=ParDL 0.2.0`;
-  `TITLE`, `ARTIST`, `ALBUM`, `ALBUMARTIST`, `DATE`; `PICTURE image/jpeg 180×45`.
-- MP3: cabecera `ID3v2.4`, frames `TIT2`, `TPE1`, `TALB`, `TPE2`, `TDRC` y
-  `APIC` de 1484 bytes.
-- M4A: `©nam/©ART/aART/©alb/©day/©gen/trkn(8)/disk(1)/covr 42371 bytes`.
+- Coincidencia por título y artista en MusicBrainz, Apple Music, Deezer e
+  Internet Archive.
+- Vista previa de título, artista, álbum, año, portada y campos disponibles.
+- Vinculación opcional y escritura en el archivo final.
+- Formatos con metadatos completos: MP3, M4A, FLAC y WAV.
+- En WebM/Opus se conserva el audio original y se aplican etiquetas básicas.
 
-### Pausa, reanudación y segundo plano
+## Limitaciones
 
-Descarga directa de FLAC 24/48 de 73.7 MB:
-
-1. Inicio: 3.2 MB, 1.7 MB/s, ETA 42 s.
-2. **Pausar**: 20,862,817 bytes (26 %), archivo temporal conservado.
-3. Notificación: “Pausado · 26 %”, acción **Reanudar**.
-4. Se pulsó Inicio (app en segundo plano) y se reanudó.
-5. Servicio: `MusicDownloadService`, `isForeground=true`,
-   `foregroundId=99000`, `types=0x00000001` (`dataSync`).
-6. Progreso tras 12 s en segundo plano: 35,401,370 bytes (46 %).
-7. Final: 77,256,341 bytes, verificado 48 kHz / 24 bit / 1546 kbps.
-
-Se verificó la notificación de grupo, el canal `pardl_music_downloads`, la
-acción de pausa/reanudación y la conservación del archivo temporal.
-
-### Spotify
-
-- Prueba del proveedor desde la pantalla de Proveedores: **1007 ms**,
-  “oEmbed de Spotify accesible”.
-- La identificación de un enlace concreto devolvió **HTTP 504** de forma
-  intermitente. ParDL reintenta dos veces y usa la página pública como respaldo;
-  si tampoco responde, informa el error y no simula la canción.
-- Spotify no se usa para descargar audio.
-
-### TIDAL
-
-- Aparece como preferido inicial y como “Requiere autenticación autorizada”.
-- La prueba informa que el sitio responde pero la integración de catálogo y
-  descarga no está habilitada. **No se descargó nada de TIDAL.**
-
-## SpotiFLAC (`com.zarz.spotiflac`)
-
-Probado en el mismo dispositivo, sin descargar contenido con derechos.
-
-- Versión `4.5.1` (versionCode 128), targetSdk 36, Flutter.
-- Permisos: `MANAGE_EXTERNAL_STORAGE`, `REQUEST_INSTALL_PACKAGES`,
-  `FOREGROUND_SERVICE_DATA_SYNC`, `READ_MEDIA_AUDIO`, notificaciones.
-- Búsqueda de “Get Lucky” funcional; resultados con calidad declarada
-  (`16bit/44.1kHz`, `24bit`).
-- Selector de proveedor: Qobuz, SoundCloud, YouTube Music, Apple Music, Deezer,
-  Spotify Web, Tidal, Amazon Music.
-- Ajustes → Extensiones: Qobuz **Online**, Apple Music **Online**, Deezer
-  **Online**, Tidal **Online**, Amazon Music **Online**, Pandora **Offline**,
-  SoundCloud **Unknown**, YouTube Music y Spotify Web sin estado.
-- Ajustes → Descarga: proveedor principal **Tidal**, concurrencia 1–5,
-  “Ask Before Download”, worker nativo beta.
-- Detalle de pista: “Download From” con Tidal marcado como *Recommended* y
-  calidades **Dolby Atmos**, **Hi-Res FLAC Max 24-bit/192 kHz**,
-  **FLAC Lossless 16-bit/44.1 kHz**, **High** y **Low**.
-
-No se pulsó ninguna acción de descarga en SpotiFLAC. Las extensiones que usa
-coinciden con las auditadas en `registry.json` y dependen de sesiones firmadas
-y `api.zarz.moe`; no son portables ni representan acceso autorizado.
-
-## Comparación y mejoras aplicadas a ParDL
-
-Tras la prueba se añadió a ParDL:
-
-- **“Buscar en otros proveedores”** en el selector de calidad, equivalente
-  legal a “Download From”: busca la misma canción en fuentes habilitadas y
-  muestra proveedor, álbum y duración antes de elegir.
-- Concurrencia de descargas ampliada a **1–5**, como SpotiFLAC.
-- Enlaces directos a archivos de Archive (`/download/...`) sin cargar todo el
-  ítem.
-- Normalización de esquema/dominio para enlaces pegados con mayúsculas.
-- Reintento y respaldo Open Graph para identificación de Spotify.
-- Corrección del nombre final (`audio.flac.part` → nombre real) y del parser
-  `moov/udta/meta` de MP4.
-
-ParDL **no** implementa lo que SpotiFLAC hace mediante resolutores de terceros:
-descarga de pistas completas de TIDAL/Qobuz/Amazon/Spotify. Eso requiere
-autorización y no se simula.
+- La disponibilidad depende de cada sitio y de la licencia del contenido.
+- Algunos servicios pueden rechazar la descarga; la app muestra el error.
+- El motor yt-dlp no permite pausa/reanudación en descargas clásicas.
+- La cola persistente se reanuda al abrir la app si Android detuvo el servicio.
+- No se eluden DRM, cuentas ni controles de acceso.
 
 ## Limpieza
 
-Se eliminaron exactamente los archivos creados por las pruebas:
-
-```
-/sdcard/Download/ParDL/Artista desconocido/Kramden Comes/audio.flac.part
-/sdcard/Download/ParDL/Artista desconocido/Kramden Comes/Artista desconocido - kramden.mp3
-/sdcard/Download/ParDL/Daft Punk/Random Access Memories/...Get Lucky.m4a
-/sdcard/Download/ParDL/Daft Punk/Random Access Memories/...Get Lucky (1).m4a
-/sdcard/Download/ParDL/Origen directo/Origen directo - shadybabes...flac
-```
-
-También se vaciaron la cola y el historial de prueba de la app y se borraron
-las carpetas vacías creadas. La carpeta personal del usuario no se tocó.
-
-## Navegador y audio completo (segundo dispositivo)
-
-Durante esta fase el dispositivo ADB cambió a **S23_Pro, Android 8.1,
-360×640**. ParDL se instaló y arrancó sin errores en esa versión.
-
-Probado:
-
-- Inicio rediseñado: el arte del título es el wordmark de cristal y **no se
-  repite “PARDL” en la cabecera** superior.
-- **Navegador web** abre `m.youtube.com` en WebView y permite navegar.
-- El botón **Descargar audio** entrega la URL canónica al motor.
-- `yt-dlp` analizó un vídeo de NASA y devolvió formatos reales:
-  - `OPUS 146 kbps .webm`
-  - `MP4A.40.2 129 kbps .m4a`
-  - `MP4A.40.5 48 kbps .m4a`
-- Se seleccionó M4A 129 kbps (metadatos completos).
-- **Vinculación de metadatos**: Apple Music encontró “The Entertainer” de
-  Scott Joplin, con álbum, año, portada y una coincidencia del **75 %**.
-  La interfaz mostró exactamente qué etiquetas se escribirían.
-- Se creó y seleccionó una carpeta aislada `Download/ParDLTest`.
-- El primer intento de descarga de YouTube devolvió
-  `HTTP Error 403: Forbidden`. ParDL lo mostró y ofreció reintentar; no simuló
-  una descarga correcta.
-- Se actualizó yt-dlp desde Ajustes, que respondió “yt-dlp se actualizó
-  correctamente”. YouTube puede seguir bloqueando según el vídeo, la región y
-  el cliente; la limitación está documentada en `docs/NAVEGADOR.md`.
-
-La carpeta `Download/ParDLTest` se eliminó al terminar. No se descargó ningún
-archivo de YouTube en este dispositivo.
-
-## Limpieza final (segundo dispositivo)
-
-- `Download/ParDLTest`: eliminada (vacía).
-- No se creó ningún archivo de audio completo de YouTube.
-- Se conservó `ParSoundTest`, que ya existía y no era de esta prueba.
-
-## Limitaciones registradas
-
-- Android puede detener un servicio si el usuario fuerza la detención desde
-  Ajustes; la cola persistida se reanuda al abrir ParDL.
-- El motor yt-dlp no permite pausa real; la notificación clásica solo cancela.
-- Spotify oEmbed puede devolver 5xx; no es un proveedor crítico.
-- Los archivos privados/restringidos de Internet Archive se omiten (HTTP 401).
-- OGG/Opus y AIFF no se etiquetan; se conservan intactos y se informa.
-- MP4 no escribe ISRC ni letras sincronizadas; sí metadatos básicos y portada.
+Los archivos y carpetas creados exclusivamente para las pruebas se eliminaron.
+Las preferencias de prueba se restablecieron para no dejar rutas inválidas.

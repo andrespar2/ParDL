@@ -54,7 +54,7 @@ Dependencias del anfitrión original declaradas en los manifiestos:
 - `preparedContext@1`
 - `patternedFileTransform@1`
 
-Son APIs privadas de Mornye/SpotiFLAC, no estándares web. Sin ese anfitrión y
+Son APIs privadas de la aplicación anfitriona original, no estándares web. Sin ese anfitrión y
 sin sus servicios de firma/sesión no son portables a ParDL.
 
 ## Clasificación
