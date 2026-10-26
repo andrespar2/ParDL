@@ -2,7 +2,6 @@ package com.andrespar2.pardl.ui
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,14 +24,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.andrespar2.pardl.ui.theme.AccentBlue
 import com.andrespar2.pardl.ui.theme.AccentCyan
 import com.andrespar2.pardl.ui.theme.AccentTeal
-import com.andrespar2.pardl.ui.theme.OutlineSoft
-import com.andrespar2.pardl.ui.theme.Surface1
+import com.andrespar2.pardl.ui.theme.LocalGlass
 import com.andrespar2.pardl.ui.theme.TextPrimary
 import com.andrespar2.pardl.ui.theme.TextSecondary
 
@@ -79,7 +78,11 @@ fun AccentRule(modifier: Modifier = Modifier) {
             .height(1.dp)
             .background(
                 Brush.horizontalGradient(
-                    listOf(AccentCyan.copy(alpha = 0.9f), AccentBlue.copy(alpha = 0.15f), AccentCyan.copy(alpha = 0.0f))
+                    listOf(
+                        AccentCyan.copy(alpha = 0.9f),
+                        AccentBlue.copy(alpha = 0.15f),
+                        AccentCyan.copy(alpha = 0.0f)
+                    )
                 )
             )
     )
@@ -88,30 +91,7 @@ fun AccentRule(modifier: Modifier = Modifier) {
 /** Barra superior con título y botón atrás opcional. */
 @Composable
 fun ParDLTopBar(title: String, onBack: (() -> Unit)? = null) {
-    Column(Modifier.fillMaxWidth().padding(top = 6.dp)) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            if (onBack != null) {
-                Text(
-                    text = "‹",
-                    fontSize = 34.sp,
-                    color = AccentCyan,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .clickable { onBack() }
-                        .padding(horizontal = 12.dp)
-                )
-            } else {
-                Spacer(Modifier.width(18.dp))
-            }
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                color = TextPrimary
-            )
-        }
-        Spacer(Modifier.height(12.dp))
-        AccentRule()
-    }
+    GlassTopBar(title = title, onBack = onBack)
 }
 
 /** Tarjeta de menú pulsable, elegante y minimalista. */
@@ -123,12 +103,11 @@ fun MenuCard(
     enabled: Boolean = true,
     onClick: () -> Unit
 ) {
+    val glass = LocalGlass.current
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(Surface1)
-            .border(1.dp, OutlineSoft, RoundedCornerShape(16.dp))
+            .glassModifier(18.dp)
             .clickable(enabled = enabled) { onClick() }
             .padding(horizontal = 18.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -137,14 +116,14 @@ fun MenuCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,
-                color = if (enabled) TextPrimary else TextSecondary
+                color = if (enabled) glass.textPrimary else glass.textSecondary
             )
             if (subtitle != null) {
                 Spacer(Modifier.height(3.dp))
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary
+                    color = glass.textSecondary
                 )
             }
         }
@@ -152,7 +131,7 @@ fun MenuCard(
             text = "›",
             fontSize = 24.sp,
             fontWeight = FontWeight.Light,
-            color = if (enabled && accent) AccentCyan else TextSecondary
+            color = if (enabled && accent) glass.accent else glass.textSecondary
         )
     }
 }
@@ -160,11 +139,24 @@ fun MenuCard(
 /** Fila de información etiqueta/valor. */
 @Composable
 fun InfoRow(label: String, value: String) {
+    val glass = LocalGlass.current
     Row(
         Modifier.fillMaxWidth().padding(vertical = 3.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(label, style = MaterialTheme.typography.bodyMedium, color = TextSecondary)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = TextPrimary)
+        Text(label, style = MaterialTheme.typography.bodyMedium, color = glass.textSecondary)
+        Text(value, style = MaterialTheme.typography.bodyMedium, color = glass.textPrimary)
     }
+}
+
+/** Separador de sección en mayúsculas. */
+@Composable
+fun SectionLabel(text: String) {
+    val glass = LocalGlass.current
+    Text(
+        text = text.uppercase(),
+        style = MaterialTheme.typography.labelSmall,
+        color = glass.accent,
+        modifier = Modifier.padding(vertical = 2.dp)
+    )
 }
