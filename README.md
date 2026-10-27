@@ -41,7 +41,8 @@ identidad visual. Cada plataforma tiene su propia release, claramente separada.
 
 La release de Android **no se ha recreado** para la versión de PC: sigue siendo
 la v0.3.2. Las releases están separadas por etiquetas: `pc-v*` para Windows y
-`v0.3.x` para Android. Hay un índice en [docs/RELEASES.md](docs/RELEASES.md).
+`v0.3.x` para Android. Hay un índice en [docs/RELEASES.md](docs/RELEASES.md) y
+un [aviso fijado con ambas descargas](https://github.com/andrespar2/ParDL/issues/1).
 
 ---
 

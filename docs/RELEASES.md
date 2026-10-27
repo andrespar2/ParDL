@@ -17,9 +17,11 @@ ParDL publica **dos líneas separadas** para no mezclar binarios ni notas:
 - La release de PC se publica como **no-latest** para que el badge «Latest» de
   Android no cambie. Aun así, aparece en la lista de releases y tiene su propio
   enlace directo.
-- GitHub no permite fijar releases de forma nativa. Este índice, los títulos,
-  las etiquetas y la sección **Descargas** del README son el mecanismo de
-  organización estable.
+- GitHub no permite fijar releases de forma nativa. Para que ambas descargas
+  queden visibles, hay un **aviso fijado** en Issues:
+  [Descargas oficiales de ParDL (PC y Android)](https://github.com/andrespar2/ParDL/issues/1).
+  Este índice, los títulos, las etiquetas y la sección **Descargas** del README
+  completan la organización estable.
 
 ## Enlaces
 
