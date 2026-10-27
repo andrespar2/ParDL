@@ -67,6 +67,10 @@ fun SettingsScreen(onBack: () -> Unit) {
     val engineState by Engine.state.collectAsState()
     var refresh by remember { mutableStateOf(0) }
     var folderLabel by remember { mutableStateOf(prefs.folderName) }
+    var lyricsEnabled by remember { mutableStateOf(prefs.musicEmbedLyrics) }
+    // Fuerza una recomposición cuando cambia cualquier preferencia.
+    val refreshState = refresh
+    LaunchedEffect(refreshState) { }
     var version by remember { mutableStateOf<String?>(null) }
     var updating by remember { mutableStateOf(false) }
     var updateMsg by remember { mutableStateOf<String?>(null) }
@@ -235,8 +239,12 @@ fun SettingsScreen(onBack: () -> Unit) {
                 GlassSwitchRow(
                     "Incrustar letras",
                     "Solo si su origen y licencia lo permiten; LRCLIB es la fuente",
-                    prefs.musicEmbedLyrics
-                ) { prefs.musicEmbedLyrics = it; touched() }
+                    lyricsEnabled
+                ) {
+                    lyricsEnabled = it
+                    prefs.musicEmbedLyrics = it
+                    touched()
+                }
                 GlassSwitchRow(
                     "Organizar por artista y álbum",
                     "Crea subcarpetas dentro de la carpeta elegida",

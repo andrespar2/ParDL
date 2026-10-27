@@ -23,7 +23,7 @@ android {
         applicationId = "com.andrespar2.pardl"
         minSdk = 24
         targetSdk = 34
-        versionCode = 5
+        versionCode = 6
         versionName = "0.3.2"
 
         resourceConfigurations += listOf("es")

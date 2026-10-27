@@ -19,6 +19,8 @@ integrado para elegir el contenido que quieres guardar.
   Apple Music, Deezer o Internet Archive antes de escribir las etiquetas.
 - **Letras**: texto plano y sincronizado de LRCLIB, con opción de incrustarlas
   en FLAC, MP3, M4A y WAV.
+- **Corrección de esta compilación**: el interruptor **Incrustar letras** de
+  Ajustes ya se activa, desactiva y guarda correctamente.
 - **Motor actualizado automáticamente**: yt-dlp se comprueba al iniciar para no
   tener que actualizarlo a mano.
 - **Interfaz Liquid Glass**: modos oscuro, claro y AMOLED, tarjetas de cristal,
@@ -66,7 +68,7 @@ Pasos:
 ## Verificación
 
 - Versión: `0.3.2`
-- versionCode: `5`
+- versionCode: `6`
 - Paquete: `com.andrespar2.pardl`
 - SHA-256 de cada APK: publicado en la Release.
 
