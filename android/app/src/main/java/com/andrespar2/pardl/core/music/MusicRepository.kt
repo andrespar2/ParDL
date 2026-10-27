@@ -392,7 +392,82 @@ object MusicRepository {
      * Busca metadatos de una pista de audio descargada por el motor clásico
      * (por ejemplo un enlace de YouTube) en un proveedor distinto.
      */
+    /**
+     * Busca metadatos con el proveedor elegido y, si falla o deja campos
+     * esenciales vacíos, completa el resultado con otro proveedor disponible.
+     * Así una API caída o una coincidencia pobre no deja la pantalla sin datos.
+     */
     suspend fun findMetadata(
+        context: Context,
+        title: String,
+        artist: String,
+        providerId: String
+    ): Result<MetadataPreview> = withContext(Dispatchers.IO) {
+        val primary = findMetadataOnce(context, title, artist, providerId)
+        val preview = primary.getOrNull()
+        val needsEnrichment = preview == null || preview.metadata.artworkUrl.isNullOrBlank() ||
+            preview.metadata.album.value.isNullOrBlank() ||
+            preview.metadata.year.value.isNullOrBlank()
+
+        if (primary.isSuccess && !needsEnrichment) return@withContext primary
+
+        for (candidate in metadataFallbackIds(context, providerId)) {
+            val alternative = findMetadataOnce(context, title, artist, candidate)
+            val altPreview = alternative.getOrNull() ?: continue
+            if (preview == null) return@withContext alternative
+            val merged = mergeMetadata(preview, altPreview)
+            if (merged.metadata.artworkUrl != preview.metadata.artworkUrl ||
+                merged.metadata.album.value != preview.metadata.album.value ||
+                merged.metadata.year.value != preview.metadata.year.value
+            ) {
+                return@withContext Result.success(merged)
+            }
+        }
+        primary
+    }
+
+    private fun metadataFallbackIds(context: Context, requested: String): List<String> {
+        val prefs = Prefs.get(context)
+        return listOf("apple-music", "deezer", "musicbrainz", "internet-archive")
+            .filter { it != requested && prefs.providerEnabled(it) }
+    }
+
+    private fun MetaField.orElse(other: MetaField): MetaField = if (isPresent) this else other
+
+    private fun mergeMetadata(primary: MetadataPreview, extra: MetadataPreview): MetadataPreview {
+        val a = primary.metadata
+        val b = extra.metadata
+        val merged = a.copy(
+            album = a.album.orElse(b.album),
+            albumArtist = a.albumArtist.orElse(b.albumArtist),
+            year = a.year.orElse(b.year),
+            releaseDate = a.releaseDate.orElse(b.releaseDate),
+            genre = a.genre.orElse(b.genre),
+            composer = a.composer.orElse(b.composer),
+            producer = a.producer.orElse(b.producer),
+            label = a.label.orElse(b.label),
+            trackNumber = a.trackNumber.orElse(b.trackNumber),
+            discNumber = a.discNumber.orElse(b.discNumber),
+            isrc = a.isrc.orElse(b.isrc),
+            credits = a.credits.orElse(b.credits),
+            copyright = a.copyright.orElse(b.copyright),
+            durationSec = if (a.durationSec > 0) a.durationSec else b.durationSec,
+            artworkUrl = a.artworkUrl ?: b.artworkUrl,
+            artworkWidth = a.artworkWidth ?: b.artworkWidth,
+            artworkHeight = a.artworkHeight ?: b.artworkHeight,
+            artworkMime = a.artworkMime ?: b.artworkMime,
+            lyrics = a.lyrics ?: b.lyrics,
+            sources = (a.sources + b.sources).distinct()
+        )
+        if (merged == a) return primary
+        return primary.copy(
+            matchedTrack = primary.matchedTrack ?: extra.matchedTrack,
+            metadata = merged,
+            reasons = (primary.reasons + "Complementado con ${extra.providerName}").distinct()
+        )
+    }
+
+    private suspend fun findMetadataOnce(
         context: Context,
         title: String,
         artist: String,
@@ -525,8 +600,19 @@ object MusicRepository {
             album = album,
             durationSec = durationSec
         )
-        withTimeoutOrNull(25_000) {
+        val exact = withTimeoutOrNull(12_000) {
             runCatching { LrcLibProvider.lyrics(track) }.getOrNull()
+        }
+        if (exact != null) return@withContext exact
+
+        // Algunos metadatos (por ejemplo, MusicBrainz) traen un álbum que no
+        // coincide con el de LRCLIB. Reintenta solo con título y artista.
+        withTimeoutOrNull(12_000) {
+            runCatching {
+                LrcLibProvider.lyrics(
+                    track.copy(album = null, durationSec = 0)
+                )
+            }.getOrNull()
         }
     }
 

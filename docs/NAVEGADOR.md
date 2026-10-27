@@ -73,3 +73,14 @@ de video dentro de YouTube.
 - Ventanas emergentes se cargan en la misma vista o se abren fuera.
 - Enlaces no web (`intent://`, `mailto:`, etc.) se delegan al sistema.
 - Navegación con historial, recarga y apertura en navegador externo.
+
+
+## Búsqueda manual de metadatos
+
+Además de la búsqueda automática por los datos del enlace, la pantalla de audio
+incluye los campos **Título de la canción** y **Artista**. Si la coincidencia
+automática no es la correcta, edita esos campos y pulsa **Buscar de nuevo**.
+
+El resultado muestra el proveedor, la confianza de la coincidencia, la portada
+y las letras disponibles. Si el proveedor seleccionado falla, ParDL completa los
+campos vacíos con otro proveedor de metadatos habilitado.

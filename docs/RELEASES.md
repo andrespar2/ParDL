@@ -40,3 +40,14 @@ ParDL publica **dos líneas separadas** para no mezclar binarios ni notas:
 
 > Las fechas son orientativas; consulta cada release para ver el detalle y los
 > checksums publicados.
+
+
+## Hotfix de Android v0.3.2 (27 oct 2026)
+
+Se reemplazaron los APK de la release **v0.3.2** sin crear una release nueva:
+misma versión `0.3.2` y mismo `versionCode` 6. Incluye búsqueda manual de
+metadatos por título/artista, fallback entre proveedores y un reintento de letras
+sin álbum.
+
+- `ParDL-v0.3.2-arm64.apk`: SHA-256 `f8bff261b0ec0605e06bbcf3c7cd6ab850a7b5f94869628032ecc99819b5668f`
+- `ParDL-v0.3.2-universal.apk`: SHA-256 `32ec713b943265907577ccd004edc924dc900c10f9ec162028e5bfa433eb2ee1`

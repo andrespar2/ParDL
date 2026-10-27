@@ -73,3 +73,27 @@ Pasos:
 - SHA-256 de cada APK: publicado en la Release.
 
 ¡Gracias por usar ParDL!
+
+
+## Corrección de metadatos (27 oct 2026)
+
+Se reemplazaron los APK de esta misma release **sin crear una versión nueva**.
+La versión sigue siendo **0.3.2** (versionCode 6).
+
+- **Proveedor por defecto más completo**: Apple Music/iTunes, con Deezer y
+  MusicBrainz como alternativas.
+- **Fallback automático**: si el proveedor elegido falla o no aporta portada,
+  álbum o año, ParDL completa el resultado con otro proveedor disponible.
+- **Búsqueda manual por nombre**: en la pantalla de audio puedes editar el
+  título y el artista, y volver a buscar si el enlace no encuentra la canción.
+- **Letras más fiables**: LRCLIB reintenta sin álbum cuando la coincidencia
+  automática no devuelve letras.
+- **Portada, etiquetas y letras** se siguen escribiendo y verificando en el
+  archivo final.
+
+## SHA-256 de los APK corregidos
+
+- `ParDL-v0.3.2-arm64.apk`: `f8bff261b0ec0605e06bbcf3c7cd6ab850a7b5f94869628032ecc99819b5668f`
+- `ParDL-v0.3.2-universal.apk`: `32ec713b943265907577ccd004edc924dc900c10f9ec162028e5bfa433eb2ee1`
+
+Descarga solo estos APK desde la release oficial de ParDL.

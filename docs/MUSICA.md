@@ -46,3 +46,14 @@ disponibilidad de cada web depende de yt-dlp y de sus propias restricciones.
 
 No se eluden DRM, cuentas ni controles de acceso. Descarga solo contenido
 propio o autorizado.
+
+
+## Búsqueda manual y fallback
+
+- Si el enlace no encuentra la canción correcta, la pantalla de audio permite
+  editar el título y el artista y volver a buscar.
+- Apple Music/iTunes es la opción inicial; Deezer y MusicBrainz quedan como
+  alternativas seleccionables.
+- Cuando el proveedor elegido falla o deja vacíos la portada, el álbum o el año,
+  ParDL intenta completar el resultado con otro proveedor habilitado.
+- LRCLIB reintenta la letra sin álbum si la búsqueda exacta no devuelve texto.

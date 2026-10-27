@@ -103,10 +103,12 @@ fun DownloadScreen(
     var pendingDownload by remember { mutableStateOf(false) }
     var pickGeneration by remember { mutableStateOf(0) }
     var folderLabel by remember { mutableStateOf(prefs.folderName) }
-    var metadataProvider by remember { mutableStateOf("musicbrainz") }
+    var metadataProvider by remember { mutableStateOf("apple-music") }
     var metadataPreview by remember { mutableStateOf<MusicRepository.MetadataPreview?>(null) }
     var metadataLoading by remember { mutableStateOf(false) }
     var metadataError by remember { mutableStateOf<String?>(null) }
+    var metadataTitle by rememberSaveable(navKey) { mutableStateOf("") }
+    var metadataArtist by rememberSaveable(navKey) { mutableStateOf("") }
     var bindMetadata by remember { mutableStateOf(false) }
     var embedCover by remember { mutableStateOf(true) }
     var embedLyrics by remember { mutableStateOf(false) }
@@ -225,6 +227,8 @@ fun DownloadScreen(
                     metadataPreview = null
                     metadataError = null
                     bindMetadata = false
+                    metadataTitle = media.title
+                    metadataArtist = media.uploader.orEmpty()
                     focusManager.clearFocus()
                     selectedKey = if (kind == DownloadKind.VIDEO) {
                         "7"
@@ -252,12 +256,13 @@ fun DownloadScreen(
         metadataError = null
         metadataPreview = null
         bindMetadata = false
+        focusManager.clearFocus()
         scope.launch {
             val result = withTimeoutOrNull(45_000) {
                 MusicRepository.findMetadata(
                     context = context,
-                    title = media.title,
-                    artist = media.uploader.orEmpty(),
+                    title = metadataTitle.ifBlank { media.title },
+                    artist = metadataArtist.ifBlank { media.uploader.orEmpty() },
                     providerId = metadataProvider
                 )
             }
@@ -360,7 +365,11 @@ fun DownloadScreen(
                     onEmbedLyricsChange = { embedLyrics = it },
                     onFindMetadata = { findMetadata() },
                     embedCover = embedCover,
-                    onEmbedCoverChange = { embedCover = it }
+                    onEmbedCoverChange = { embedCover = it },
+                    metadataTitle = metadataTitle,
+                    onMetadataTitleChange = { metadataTitle = it },
+                    metadataArtist = metadataArtist,
+                    onMetadataArtistChange = { metadataArtist = it }
                 )
             }
 
@@ -398,7 +407,11 @@ private fun FormView(
     onEmbedLyricsChange: (Boolean) -> Unit,
     onFindMetadata: () -> Unit,
     embedCover: Boolean,
-    onEmbedCoverChange: (Boolean) -> Unit
+    onEmbedCoverChange: (Boolean) -> Unit,
+    metadataTitle: String,
+    onMetadataTitleChange: (String) -> Unit,
+    metadataArtist: String,
+    onMetadataArtistChange: (String) -> Unit
 ) {
     val isOriginalAudio = kind == DownloadKind.AUDIO && choices.any { it.formatId != null }
     Text(
@@ -541,7 +554,11 @@ private fun FormView(
                 onEmbedLyricsChange = onEmbedLyricsChange,
                 onFind = onFindMetadata,
                 embedCover = embedCover,
-                onEmbedCoverChange = onEmbedCoverChange
+                onEmbedCoverChange = onEmbedCoverChange,
+                queryTitle = metadataTitle,
+                onQueryTitleChange = onMetadataTitleChange,
+                queryArtist = metadataArtist,
+                onQueryArtistChange = onMetadataArtistChange
             )
         }
 
@@ -575,7 +592,11 @@ private fun MetadataBindingSection(
     onEmbedLyricsChange: (Boolean) -> Unit,
     onFind: () -> Unit,
     embedCover: Boolean,
-    onEmbedCoverChange: (Boolean) -> Unit
+    onEmbedCoverChange: (Boolean) -> Unit,
+    queryTitle: String,
+    onQueryTitleChange: (String) -> Unit,
+    queryArtist: String,
+    onQueryArtistChange: (String) -> Unit
 ) {
     val providers = listOf(
         "musicbrainz" to "MusicBrainz",
@@ -634,6 +655,58 @@ private fun MetadataBindingSection(
             }
             Spacer(Modifier.height(7.dp))
         }
+
+        Spacer(Modifier.height(3.dp))
+        Text(
+            "Buscar por nombre (opcional)",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextSecondary
+        )
+        Spacer(Modifier.height(5.dp))
+        OutlinedTextField(
+            value = queryTitle,
+            onValueChange = onQueryTitleChange,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Título de la canción", color = TextDim) },
+            shape = RoundedCornerShape(12.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = AccentCyan,
+                unfocusedBorderColor = OutlineSoft,
+                cursorColor = AccentCyan,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                focusedContainerColor = Surface2,
+                unfocusedContainerColor = Surface2
+            )
+        )
+        Spacer(Modifier.height(7.dp))
+        OutlinedTextField(
+            value = queryArtist,
+            onValueChange = onQueryArtistChange,
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            label = { Text("Artista", color = TextDim) },
+            placeholder = { Text("Opcional", color = TextDim) },
+            shape = RoundedCornerShape(12.dp),
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = AccentCyan,
+                unfocusedBorderColor = OutlineSoft,
+                cursorColor = AccentCyan,
+                focusedTextColor = TextPrimary,
+                unfocusedTextColor = TextPrimary,
+                focusedContainerColor = Surface2,
+                unfocusedContainerColor = Surface2
+            )
+        )
+        Spacer(Modifier.height(4.dp))
+        Text(
+            "Edita estos datos si el enlace no encuentra la canción correcta y vuelve a buscar.",
+            style = MaterialTheme.typography.labelSmall,
+            color = TextDim
+        )
 
         if (loading) {
             Row(
@@ -733,11 +806,13 @@ private fun MetadataBindingSection(
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary
             )
-        } else if (!loading) {
-            Spacer(Modifier.height(6.dp))
+        }
+
+        if (!loading) {
+            Spacer(Modifier.height(10.dp))
             PrimaryButton(
-                text = "Buscar coincidencia",
-                enabled = true,
+                text = if (preview == null) "Buscar coincidencia" else "Buscar de nuevo",
+                enabled = queryTitle.isNotBlank(),
                 onClick = onFind,
                 modifier = Modifier.fillMaxWidth()
             )
