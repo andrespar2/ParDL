@@ -1,0 +1,69 @@
+{
+  "name": "pardl-pc",
+  "version": "0.4.0",
+  "description": "ParDL para Windows: navegador, descargas MP3/MP4, metadatos y letras.",
+  "main": "main.js",
+  "author": "andrespar2",
+  "license": "MIT",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder --win portable",
+    "test:backend": "node test/backend.js",
+    "test:ui": "node test/ui-smoke.js"
+  },
+  "dependencies": {
+    "music-metadata": "^7.14.0",
+    "node-id3": "^0.2.9"
+  },
+  "devDependencies": {
+    "electron": "^37.2.0",
+    "electron-builder": "^26.0.12",
+    "playwright-core": "^1.64.1"
+  },
+  "build": {
+    "appId": "com.andrespar2.pardl.pc",
+    "productName": "ParDL",
+    "copyright": "Copyright © 2026 andrespar2",
+    "asar": true,
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*",
+      "package.json",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.txt"
+    ],
+    "extraResources": [
+      {
+        "from": "tools",
+        "to": "tools",
+        "filter": [
+          "yt-dlp.exe",
+          "ffmpeg.exe"
+        ]
+      }
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "ParDL-PC-${version}-portable.exe",
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "portable": {
+      "artifactName": "ParDL-PC-${version}-portable.exe",
+      "unpackDirName": "ParDL-PC-0.4.0"
+    }
+  }
+}

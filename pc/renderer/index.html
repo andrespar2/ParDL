@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self' data: https: http:; media-src 'self' https: http: blob:; style-src 'self' 'unsafe-inline'; script-src 'self'; connect-src 'self' https: http:; frame-src https: http:; child-src https: http:;">
+  <title>ParDL</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body data-theme="dark">
+  <svg class="svg-sprite" aria-hidden="true">
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.8 12 3l9 7.8V21h-6.2v-6.2H9.2V21H3z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m0 0 4.5-4.5M12 15l-4.5-4.5M4 20h16"/></symbol>
+    <symbol id="i-browser" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 4 5.6 4 9s-1.4 6.4-4 9c-2.6-2.6-4-5.6-4-9s1.4-6.4 4-9Z"/></symbol>
+    <symbol id="i-history" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/></symbol>
+    <symbol id="i-providers" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.9l.1.1-2.8 2.8-.1-.1a1.7 1.7 0 0 0-1.9-.3 1.7 1.7 0 0 0-1 1.6v.2h-4V21a1.7 1.7 0 0 0-1-1.6 1.7 1.7 0 0 0-1.9.3l-.1.1L4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.9A1.7 1.7 0 0 0 3 14H2.8v-4H3a1.7 1.7 0 0 0 1.6-1 1.7 1.7 0 0 0-.3-1.9L4.2 7 7 4.2l.1.1A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-1.6v-.2h4V3a1.7 1.7 0 0 0 1 1.6 1.7 1.7 0 0 0 1.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.6 1h.2v4H21a1.7 1.7 0 0 0-1.6 1Z"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.2"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7z"/></symbol>
+    <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="m16 10 5-3v10l-5-3"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m4 12.5 5 5L20 6.5"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 7v5h-5M4 17v-5h5"/><path d="M6.1 9a7 7 0 0 1 11.6-2L20 10M4 14l2.3 3a7 7 0 0 0 11.6-2"/></symbol>
+    <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></symbol>
+    <symbol id="i-paste" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2M9 10h6M9 14h6M9 18h4"/></symbol>
+    <symbol id="i-external" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-9 9"/><path d="M19 14v6H4V5h6"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 14h10l1-14M10 11v6M14 11v6"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 2 2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4z"/></symbol>
+    <symbol id="i-lyrics" viewBox="0 0 24 24"><path d="M5 4h14v16H5z"/><path d="M8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4h8l10 10-8 8z"/><circle cx="8" cy="8" r="1.4"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="8.5" cy="9" r="1.8"/><path d="m4 18 5-5 4 4 2-2 5 5"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3 20 6v6c0 5-3.4 8-8 9-4.6-1-8-4-8-9V6z"/><path d="m8.5 12 2.3 2.3 4.7-5"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.6 2.6 4 5.6 4 9s-1.4 6.4-4 9c-2.6-2.6-4-5.6-4-9s1.4-6.4 4-9Z"/></symbol>
+    <symbol id="i-back" viewBox="0 0 24 24"><path d="m15 5-7 7 7 7"/></symbol>
+    <symbol id="i-forward" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-minimize" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+    <symbol id="i-maximize" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="1"/></symbol>
+    <symbol id="i-restore" viewBox="0 0 24 24"><path d="M8 8V5h11v11h-3M5 8h11v11H5z"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18"/></symbol>
+    <symbol id="i-database" viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v6c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></symbol>
+  </svg>
+
+  <div id="app">
+    <header class="titlebar" id="titlebar">
+      <div class="titlebar-brand" id="titlebar-brand">
+        <canvas id="wordmark" width="150" height="30" aria-label="ParDL"></canvas>
+        <span class="pc-badge">PC</span>
+      </div>
+      <div class="titlebar-drag"></div>
+      <div class="titlebar-status" id="titlebar-status">Listo</div>
+      <div class="window-controls">
+        <button class="window-btn" id="btn-min" title="Minimizar" aria-label="Minimizar"><svg><use href="#i-minimize"></use></svg></button>
+        <button class="window-btn" id="btn-max" title="Maximizar" aria-label="Maximizar"><svg id="max-icon"><use href="#i-maximize"></use></svg></button>
+        <button class="window-btn close" id="btn-close" title="Cerrar" aria-label="Cerrar"><svg><use href="#i-close"></use></svg></button>
+      </div>
+    </header>
+
+    <div class="shell">
+      <aside class="sidebar">
+        <nav class="nav">
+          <div class="nav-label">Principal</div>
+          <button class="nav-item active" data-view="home"><svg><use href="#i-home"></use></svg><span>Inicio</span></button>
+          <button class="nav-item" data-view="download"><svg><use href="#i-download"></use></svg><span>Descargar</span></button>
+          <button class="nav-item" data-view="browser"><svg><use href="#i-browser"></use></svg><span>Navegador</span></button>
+          <div class="nav-label">Biblioteca</div>
+          <button class="nav-item" data-view="downloads"><svg><use href="#i-play"></use></svg><span>Descargas</span><span class="nav-dot" id="downloads-dot" hidden></span></button>
+          <button class="nav-item" data-view="history"><svg><use href="#i-history"></use></svg><span>Historial</span></button>
+          <button class="nav-item" data-view="providers"><svg><use href="#i-providers"></use></svg><span>Proveedores</span></button>
+          <div class="nav-label">Sistema</div>
+          <button class="nav-item" data-view="settings"><svg><use href="#i-settings"></use></svg><span>Ajustes</span></button>
+          <button class="nav-item" data-view="about"><svg><use href="#i-info"></use></svg><span>Acerca de</span></button>
+        </nav>
+        <div class="sidebar-foot">
+          <div class="engine-pill" id="sidebar-engine"><span class="status-dot"></span><span id="sidebar-engine-text">yt-dlp</span></div>
+          <div class="sidebar-version">v0.4.0 · Portable</div>
+        </div>
+      </aside>
+
+      <main class="main" id="main">
+        <div class="main-top">
+          <div class="page-kicker" id="page-kicker">ParDL para Windows</div>
+          <div class="top-actions">
+            <button class="ghost-button" id="quick-folder"><svg><use href="#i-folder"></use></svg><span>Carpeta</span></button>
+            <button class="icon-button" id="quick-settings" title="Ajustes"><svg><use href="#i-settings"></use></svg></button>
+          </div>
+        </div>
+
+        <!-- Inicio -->
+        <section class="view active" id="view-home" data-title="Inicio">
+          <div class="hero glass">
+            <div class="hero-glow"></div>
+            <div class="hero-copy">
+              <div class="eyebrow"><span class="eyebrow-line"></span>PARDL · WINDOWS</div>
+              <h1>Tu música y tus vídeos,<br><span class="gradient-text">sin límites.</span></h1>
+              <p>Descarga en MP4 o MP3 desde miles de sitios, con calidades reales, carátula, metadatos y letras. Todo en una app portable.</p>
+              <div class="hero-actions">
+                <button class="primary-button" data-go="download" data-kind="video"><svg><use href="#i-video"></use></svg>Descargar vídeo</button>
+                <button class="secondary-button" data-go="download" data-kind="audio"><svg><use href="#i-music"></use></svg>Descargar audio</button>
+              </div>
+              <div class="hero-stats">
+                <div><strong id="stat-engine">—</strong><span>yt-dlp</span></div>
+                <div><strong>MP4</strong><span>Vídeo</span></div>
+                <div><strong>MP3</strong><span>Audio</span></div>
+                <div><strong>LRCLIB</strong><span>Letras</span></div>
+              </div>
+            </div>
+            <div class="hero-orbit" aria-hidden="true">
+              <div class="orbit-ring ring-1"></div>
+              <div class="orbit-ring ring-2"></div>
+              <div class="orbit-core"><svg><use href="#i-play"></use></svg></div>
+              <div class="orbit-chip chip-1"><svg><use href="#i-music"></use></svg>Audio</div>
+              <div class="orbit-chip chip-2"><svg><use href="#i-image"></use></svg>Portada</div>
+              <div class="orbit-chip chip-3"><svg><use href="#i-lyrics"></use></svg>Letras</div>
+            </div>
+          </div>
+
+          <div class="section-head">
+            <div><h2>Empieza por aquí</h2><p>Las herramientas que necesitas, a un clic.</p></div>
+          </div>
+          <div class="card-grid">
+            <button class="feature-card glass" data-go="download" data-kind="video">
+              <div class="feature-icon blue"><svg><use href="#i-video"></use></svg></div>
+              <h3>Vídeo MP4</h3>
+              <p>Elige resolución real: 4K, 1440p, 1080p, 720p y más.</p>
+              <span class="card-link">Abrir descarga <svg><use href="#i-chevron"></use></svg></span>
+            </button>
+            <button class="feature-card glass" data-go="download" data-kind="audio">
+              <div class="feature-icon mint"><svg><use href="#i-music"></use></svg></div>
+              <h3>Audio MP3</h3>
+              <p>Conserva el formato original o convierte a MP3 192 kbps.</p>
+              <span class="card-link">Abrir descarga <svg><use href="#i-chevron"></use></svg></span>
+            </button>
+            <button class="feature-card glass" data-go="browser">
+              <div class="feature-icon violet"><svg><use href="#i-browser"></use></svg></div>
+              <h3>Navegador integrado</h3>
+              <p>Explora YouTube y otros sitios, y manda el vídeo a descarga.</p>
+              <span class="card-link">Abrir navegador <svg><use href="#i-chevron"></use></svg></span>
+            </button>
+            <button class="feature-card glass" data-go="providers">
+              <div class="feature-icon amber"><svg><use href="#i-tag"></use></svg></div>
+              <h3>Metadatos y letras</h3>
+              <p>MusicBrainz, iTunes, Deezer, Internet Archive y LRCLIB.</p>
+              <span class="card-link">Ver proveedores <svg><use href="#i-chevron"></use></svg></span>
+            </button>
+          </div>
+
+          <div class="home-lower">
+            <div class="glass panel recent-panel">
+              <div class="panel-head"><h3>Descargas recientes</h3><button class="text-button" data-go="history">Ver todo <svg><use href="#i-chevron"></use></svg></button></div>
+              <div id="home-recent" class="recent-list"><div class="empty-mini">Aún no hay descargas. Empieza con un enlace.</div></div>
+            </div>
+            <div class="glass panel tip-panel">
+              <div class="tip-icon"><svg><use href="#i-spark"></use></svg></div>
+              <h3>Consejo rápido</h3>
+              <p>Pega un enlace de YouTube, SoundCloud, Vimeo o Bandcamp. ParDL analiza el contenido y te muestra solo las calidades que existen.</p>
+              <div class="tip-tags"><span>4K</span><span>1080p</span><span>MP3</span><span>FLAC</span><span>M4A</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Descargar -->
+        <section class="view" id="view-download" data-title="Nueva descarga">
+          <div class="page-head">
+            <div><div class="page-kicker">Descarga</div><h2>¿Qué quieres guardar?</h2><p>Pega un enlace. ParDL se encarga del resto.</p></div>
+            <div class="kind-switch" id="kind-switch">
+              <button class="kind-btn active" data-kind="video"><svg><use href="#i-video"></use></svg>Vídeo</button>
+              <button class="kind-btn" data-kind="audio"><svg><use href="#i-music"></use></svg>Audio</button>
+            </div>
+          </div>
+
+          <div class="glass download-form" id="download-form">
+            <div class="url-row">
+              <div class="url-input-wrap">
+                <svg class="url-icon"><use href="#i-globe"></use></svg>
+                <input id="url-input" type="text" spellcheck="false" autocomplete="off" placeholder="Pega un enlace de YouTube, SoundCloud, Vimeo…">
+                <button class="paste-btn" id="btn-paste" title="Pegar"><svg><use href="#i-paste"></use></svg></button>
+              </div>
+              <button class="primary-button analyze-btn" id="btn-analyze"><svg><use href="#i-search"></use></svg><span>Analizar</span></button>
+            </div>
+            <div class="form-hint" id="form-hint">Compatible con YouTube, SoundCloud, Vimeo, Bandcamp, TikTok, Instagram, Facebook y más.</div>
+            <div class="form-error" id="form-error" hidden></div>
+          </div>
+
+          <div class="analyze-loading" id="analyze-loading" hidden>
+            <div class="spinner"></div><span>Analizando enlace…</span>
+          </div>
+
+          <div class="download-content" id="download-content" hidden>
+            <div class="glass media-card">
+              <div class="media-thumb" id="media-thumb"><img id="media-image" alt="Miniatura del contenido"><div class="thumb-fallback"><svg><use href="#i-play"></use></svg></div></div>
+              <div class="media-info">
+                <div class="media-badges" id="media-badges"></div>
+                <h3 id="media-title">—</h3>
+                <p id="media-subtitle">—</p>
+                <div class="media-meta" id="media-meta"></div>
+              </div>
+              <button class="icon-button" id="btn-reset" title="Cambiar enlace"><svg><use href="#i-x"></use></svg></button>
+            </div>
+
+            <div class="glass section-card" id="quality-card">
+              <div class="section-card-head">
+                <div><h3>Calidad</h3><p>Selecciona una opción disponible.</p></div>
+                <div class="mini-tabs" id="quality-tabs"></div>
+              </div>
+              <div class="quality-grid" id="quality-grid"></div>
+            </div>
+
+            <div class="glass section-card" id="metadata-card">
+              <div class="section-card-head">
+                <div><h3>Metadatos, portada y letras</h3><p>Opcional. Mejora las etiquetas del archivo con un proveedor externo.</p></div>
+                <span class="soft-badge" id="metadata-status">Sin vincular</span>
+              </div>
+              <div class="provider-chips" id="provider-chips"></div>
+              <div class="metadata-actions">
+                <button class="secondary-button" id="btn-find-metadata"><svg><use href="#i-spark"></use></svg>Buscar coincidencia</button>
+                <span class="muted" id="metadata-query">—</span>
+              </div>
+              <div class="metadata-preview" id="metadata-preview" hidden>
+                <div class="metadata-cover" id="metadata-cover"><div class="cover-placeholder"><svg><use href="#i-image"></use></svg></div></div>
+                <div class="metadata-fields" id="metadata-fields"></div>
+                <button class="icon-button" id="btn-clear-metadata" title="Quitar metadatos"><svg><use href="#i-x"></use></svg></button>
+              </div>
+              <div class="lyrics-preview" id="lyrics-preview" hidden>
+                <div class="lyrics-head"><span><svg><use href="#i-lyrics"></use></svg>Letra encontrada</span><span class="soft-badge" id="lyrics-badge">LRCLIB</span></div>
+                <pre id="lyrics-text"></pre>
+              </div>
+            </div>
+
+            <div class="glass section-card settings-inline">
+              <div class="inline-row">
+                <div class="inline-icon"><svg><use href="#i-folder"></use></svg></div>
+                <div class="inline-copy"><strong>Carpeta de destino</strong><span id="download-folder">—</span></div>
+                <button class="secondary-button small" id="btn-change-folder">Cambiar</button>
+              </div>
+              <div class="toggle-row">
+                <label class="toggle"><input type="checkbox" id="opt-metadata" checked><span class="toggle-track"></span><span>Etiquetas</span></label>
+                <label class="toggle"><input type="checkbox" id="opt-cover" checked><span class="toggle-track"></span><span>Portada</span></label>
+                <label class="toggle"><input type="checkbox" id="opt-lyrics" checked><span class="toggle-track"></span><span>Letras</span></label>
+                <label class="toggle"><input type="checkbox" id="opt-organize"><span class="toggle-track"></span><span>Organizar por artista/álbum</span></label>
+              </div>
+            </div>
+
+            <button class="download-cta" id="btn-download"><svg><use href="#i-download"></use></svg><span>Descargar ahora</span><span class="cta-quality" id="cta-quality"></span></button>
+
+            <div class="glass progress-card" id="download-progress" hidden>
+              <div class="progress-top"><div><span class="progress-label" id="progress-label">Descargando…</span><strong id="progress-percent">0%</strong></div><button class="text-button danger" id="btn-cancel">Cancelar</button></div>
+              <div class="progress-track"><div class="progress-fill" id="progress-fill"></div></div>
+              <div class="progress-stats"><span id="progress-speed">—</span><span id="progress-eta">—</span></div>
+            </div>
+
+            <div class="glass result-card success" id="download-result" hidden>
+              <div class="result-icon"><svg><use href="#i-check"></use></svg></div>
+              <div class="result-copy"><h3>Descarga completada</h3><p id="result-title">—</p><div class="result-tags" id="result-tags"></div><div class="result-warning" id="result-warning" hidden></div></div>
+              <div class="result-actions"><button class="secondary-button small" id="btn-open-file">Abrir archivo</button><button class="secondary-button small" id="btn-open-folder">Ver carpeta</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Descargas -->
+        <section class="view" id="view-downloads" data-title="Descargas">
+          <div class="page-head"><div><div class="page-kicker">Biblioteca</div><h2>Descargas</h2><p>Tu actividad de esta sesión y los archivos guardados.</p></div><button class="secondary-button" id="btn-open-downloads-folder"><svg><use href="#i-folder"></use></svg>Abrir carpeta</button></div>
+          <div class="glass active-download" id="active-download" hidden>
+            <div class="active-download-head"><div class="active-download-art"><div class="spinner small"></div></div><div><strong id="active-title">Descargando…</strong><span id="active-sub">—</span></div><span class="active-percent" id="active-percent">0%</span></div>
+            <div class="progress-track"><div class="progress-fill" id="active-fill"></div></div>
+            <div class="progress-stats"><span id="active-speed">—</span><span id="active-eta">—</span><button class="text-button danger" id="btn-active-cancel">Cancelar</button></div>
+          </div>
+          <div class="glass panel">
+            <div class="panel-head"><h3>Archivos guardados</h3><span class="muted" id="downloads-count">0 elementos</span></div>
+            <div id="downloads-list" class="download-list"></div>
+          </div>
+        </section>
+
+        <!-- Navegador -->
+        <section class="view browser-view" id="view-browser" data-title="Navegador">
+          <div class="page-head browser-head"><div><div class="page-kicker">Explorar</div><h2>Navegador</h2><p>Busca y descarga sin salir de ParDL.</p></div><button class="secondary-button" id="btn-browser-external"><svg><use href="#i-external"></use></svg>Abrir fuera</button></div>
+          <div class="glass browser-shell">
+            <div class="browser-toolbar">
+              <button class="icon-button" id="btn-back" title="Atrás"><svg><use href="#i-back"></use></svg></button>
+              <button class="icon-button" id="btn-forward" title="Adelante"><svg><use href="#i-forward"></use></svg></button>
+              <button class="icon-button" id="btn-reload" title="Recargar"><svg><use href="#i-refresh"></use></svg></button>
+              <div class="browser-url"><svg><use href="#i-globe"></use></svg><input id="browser-url" type="text" spellcheck="false" placeholder="https://www.youtube.com"></div>
+              <button class="primary-button small" id="btn-go">Ir</button>
+            </div>
+            <div class="browser-actions-bar">
+              <div class="browser-status" id="browser-status"><span class="status-dot"></span>Listo para navegar</div>
+              <div class="browser-download-actions"><button class="secondary-button small audio" id="btn-web-audio"><svg><use href="#i-music"></use></svg>Descargar audio</button><button class="secondary-button small" id="btn-web-video"><svg><use href="#i-video"></use></svg>Descargar vídeo</button></div>
+            </div>
+            <div class="webview-wrap">
+              <webview id="browser-view" src="https://www.youtube.com" partition="persist:pardl-browser" webpreferences="contextIsolation=yes, nodeIntegration=no"></webview>
+              <div class="webview-loading" id="webview-loading" hidden><div class="spinner"></div><span>Cargando sitio…</span></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Historial -->
+        <section class="view" id="view-history" data-title="Historial">
+          <div class="page-head"><div><div class="page-kicker">Biblioteca</div><h2>Historial</h2><p>Todo lo que has descargado desde este equipo.</p></div><button class="secondary-button danger" id="btn-clear-history"><svg><use href="#i-trash"></use></svg>Vaciar historial</button></div>
+          <div class="glass panel"><div id="history-list" class="history-list"></div></div>
+        </section>
+
+        <!-- Proveedores -->
+        <section class="view" id="view-providers" data-title="Proveedores">
+          <div class="page-head"><div><div class="page-kicker">Metadatos</div><h2>Proveedores</h2><p>Conecta carátulas, etiquetas y letras a tus descargas.</p></div><button class="secondary-button" id="btn-test-all"><svg><use href="#i-refresh"></use></svg>Probar todos</button></div>
+          <div class="provider-note glass"><svg><use href="#i-shield"></use></svg><div><strong>Privacidad primero</strong><span>Las búsquedas se hacen directamente desde tu equipo. ParDL no envía tus archivos ni tu historial a ningún servidor.</span></div></div>
+          <div class="provider-grid" id="providers-grid"></div>
+        </section>
+
+        <!-- Ajustes -->
+        <section class="view" id="view-settings" data-title="Ajustes">
+          <div class="page-head"><div><div class="page-kicker">Sistema</div><h2>Ajustes</h2><p>Personaliza ParDL y mantén el motor al día.</p></div></div>
+          <div class="settings-grid">
+            <div class="glass section-card">
+              <div class="section-card-head"><div><h3>Apariencia</h3><p>Elige el tema de la interfaz.</p></div></div>
+              <div class="theme-picker" id="theme-picker">
+                <button class="theme-option active" data-theme="dark"><span class="theme-swatch dark"></span><span>Oscuro</span></button>
+                <button class="theme-option" data-theme="light"><span class="theme-swatch light"></span><span>Claro</span></button>
+                <button class="theme-option" data-theme="amoled"><span class="theme-swatch amoled"></span><span>AMOLED</span></button>
+              </div>
+            </div>
+            <div class="glass section-card">
+              <div class="section-card-head"><div><h3>Descargas</h3><p>Dónde y cómo se guardan tus archivos.</p></div></div>
+              <div class="inline-row folder-inline"><div class="inline-icon"><svg><use href="#i-folder"></use></svg></div><div class="inline-copy"><strong>Carpeta de destino</strong><span id="settings-folder">—</span></div><button class="secondary-button small" id="btn-settings-folder">Cambiar</button></div>
+              <div class="toggle-list">
+                <label class="toggle"><input type="checkbox" id="set-metadata" checked><span class="toggle-track"></span><span>Escribir etiquetas de metadatos</span></label>
+                <label class="toggle"><input type="checkbox" id="set-cover" checked><span class="toggle-track"></span><span>Incrustar carátula</span></label>
+                <label class="toggle"><input type="checkbox" id="set-lyrics" checked><span class="toggle-track"></span><span>Incrustar letras</span></label>
+                <label class="toggle"><input type="checkbox" id="set-organize"><span class="toggle-track"></span><span>Organizar por artista y álbum</span></label>
+              </div>
+            </div>
+            <div class="glass section-card">
+              <div class="section-card-head"><div><h3>Motor de descargas</h3><p>yt-dlp incluido y actualizable.</p></div><span class="soft-badge" id="engine-badge">—</span></div>
+              <div class="engine-row"><div><strong>Versión instalada</strong><span id="settings-engine">—</span></div><button class="secondary-button small" id="btn-update-engine"><svg><use href="#i-refresh"></use></svg>Actualizar</button></div>
+              <div class="engine-row"><div><strong>Actualizar al iniciar</strong><span>Comprueba si hay una versión nueva de yt-dlp.</span></div><label class="toggle"><input type="checkbox" id="set-autoupdate" checked><span class="toggle-track"></span></label></div>
+              <div class="engine-row"><div><strong>FFmpeg</strong><span id="settings-ffmpeg">Incluido</span></div><span class="soft-badge">Incluido</span></div>
+            </div>
+            <div class="glass section-card">
+              <div class="section-card-head"><div><h3>Datos</h3><p>Historial y estado local.</p></div></div>
+              <div class="engine-row"><div><strong>Historial</strong><span>Se guarda en este equipo, nunca en la nube.</span></div><button class="secondary-button small danger" id="btn-settings-clear-history">Vaciar</button></div>
+              <div class="engine-row"><div><strong>Abrir carpeta de datos</strong><span>Preferencias e historial de ParDL.</span></div><button class="secondary-button small" id="btn-data-folder">Abrir</button></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Acerca de -->
+        <section class="view" id="view-about" data-title="Acerca de">
+          <div class="page-head"><div><div class="page-kicker">ParDL</div><h2>Acerca de</h2><p>Un descargador portable, hecho para Windows.</p></div></div>
+          <div class="about-grid">
+            <div class="glass about-hero"><canvas id="about-wordmark" width="300" height="60" aria-label="ParDL"></canvas><h3>ParDL PC</h3><p>Versión 0.4.0 · Windows x64</p><div class="about-badges"><span class="soft-badge">Electron</span><span class="soft-badge">yt-dlp</span><span class="soft-badge">FFmpeg</span><span class="soft-badge">Liquid Glass</span></div></div>
+            <div class="glass section-card"><h3>Qué incluye</h3><ul class="about-list"><li>Descargas MP4 y audio en calidades reales.</li><li>Navegador integrado con detección del vídeo.</li><li>Metadatos, carátula y letras con FFmpeg.</li><li>Historial local y organización por artista/álbum.</li><li>yt-dlp actualizable y FFmpeg incluido.</li></ul></div>
+            <div class="glass section-card"><h3>Requisitos</h3><ul class="about-list"><li>Windows 10 u 11 de 64 bits.</li><li>Conexión a Internet para descargar.</li><li>No requiere instalación ni permisos de administrador.</li></ul><p class="fine-print">El ejecutable no está firmado digitalmente. Windows puede mostrar un aviso de SmartScreen la primera vez; elige «Más información» y «Ejecutar de todas formas».</p></div>
+            <div class="glass section-card"><h3>Créditos y licencias</h3><p class="fine-print">ParDL es un proyecto abierto. Incluye yt-dlp (Unlicense), FFmpeg (LGPL/GPL según compilación), Electron (MIT) y music-metadata (MIT). Las marcas y contenidos descargados pertenecen a sus autores.</p><button class="secondary-button small" id="btn-github"><svg><use href="#i-external"></use></svg>Ver repositorio</button></div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="toast-stack" id="toast-stack"></div>
+  <script src="app.js"></script>
+</body>
+</html>

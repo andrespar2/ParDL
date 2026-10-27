@@ -1,153 +1,111 @@
 # ParDL
 
-**Descargador multimedia para Windows y Android** — videos en **MP4** y audio en **MP3** desde enlaces compatibles, eligiendo la calidad y la carpeta de descarga.
+**Descargador multimedia para Windows y Android**: vídeo en **MP4**, audio en **MP3/M4A**,
+navegador integrado, calidades reales, metadatos, carátula y letras.
 
-Versión **portable para Windows** (sin instalar nada) y **app Android** con **Liquid Glass** (oscuro, claro y AMOLED).
+La versión de **Windows** es una aplicación de escritorio portable con interfaz
+**Liquid Glass**. La versión de **Android** conserva su app nativa con la misma
+identidad visual. Cada plataforma tiene su propia release, claramente separada.
 
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.2-00b4d8.svg)](#)
-[![Plataforma](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)](#)
-[![Android](https://img.shields.io/badge/Android-7.0%2B-3ddc84.svg)](#)
+[![PC](https://img.shields.io/badge/PC-v0.4.0-0078d4.svg)](../../releases/tag/pc-v0.4.0)
+[![Android](https://img.shields.io/badge/Android-v0.3.2-3ddc84.svg)](../../releases/tag/v0.3.2)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
 
-```
-██████████  ██████████  ████████    ████████    ██
-██      ██  ██      ██  ██      ██  ██      ██  ██
-██████████  ██████████  ████████    ██      ██  ██
-██          ██      ██  ██  ██      ██      ██  ██
-██          ██      ██  ██    ██    ████████    ██████████
+---
 
-ig: andres.par2 | GitHub: andrespar2
-```
+## Descargas
+
+### Windows · ParDL PC v0.4.0
+
+**[Descargar ParDL-PC-0.4.0-portable.exe](../../releases/tag/pc-v0.4.0)**
+
+- Un solo `.exe`, sin instalador ni permisos de administrador.
+- Windows 10 u 11 de 64 bits.
+- Incluye yt-dlp y FFmpeg. No requiere Python, Git ni dependencias externas.
+- La primera ejecución extrae la app a `%TEMP%\ParDL-PC-0.4.0`; las siguientes
+  arrancan desde esa caché. La descarga inicial puede tardar unos segundos.
+- El ejecutable no está firmado digitalmente. Si Windows muestra SmartScreen,
+  elige **Más información → Ejecutar de todas formas**.
+
+> El SHA-256 publicado junto al `.exe` permite comprobar la descarga.
+
+### Android · ParDL v0.3.2
+
+**[Descargar ParDL Android v0.3.2](../../releases/tag/v0.3.2)**
+
+- `ParDL-v0.3.2-android-arm64.apk` para la mayoría de teléfonos actuales.
+- `ParDL-v0.3.2-android-universal.apk` para equipos que necesiten todas las
+  arquitecturas.
+- Android 7.0 o superior. La app incluye el motor y no necesita instalar yt-dlp
+  ni FFmpeg por separado.
+
+La release de Android **no se ha recreado** para la versión de PC: sigue siendo
+la v0.3.2. Las releases están separadas por etiquetas: `pc-v*` para Windows y
+`v0.3.x` para Android. Hay un índice en [docs/RELEASES.md](docs/RELEASES.md).
 
 ---
 
-## ¿Qué es ParDL?
+## Qué incluye la versión de PC
 
-**ParDL** es una herramienta **gratuita y de código abierto** que permite descargar videos en **MP4** o extraer el audio en **MP3** a partir de enlaces de cientos de sitios web compatibles. Está disponible **para Windows** (versión portable) **y para Android** (app).
+- **Interfaz Liquid Glass** en español, con temas oscuro, claro y AMOLED.
+- **Ventana redimensionable** y diseño responsive desde 820 × 560 px.
+- **Descarga de vídeo MP4** con resoluciones reales: 4K, 1440p, 1080p, 720p,
+  480p, 360p, 240p, 144p o la mejor disponible.
+- **Descarga de audio** conservando el formato original (M4A, WebM/Opus…) o
+  convirtiendo a **MP3 192 kbps**.
+- **Navegador integrado** para buscar en YouTube y otros sitios. Desde una
+  página de vídeo puedes enviar el enlace directamente a la descarga de audio o
+  vídeo.
+- **Metadatos vinculados** desde Apple Music/iTunes, Deezer, MusicBrainz e
+  Internet Archive: título, artista, álbum, año, género, sello, ISRC, créditos y
+  carátula.
+- **Letras** desde LRCLIB, con texto plano y sincronizado cuando está disponible.
+- **Etiquetado real** del archivo:
+  - MP3: ID3v2 con carátula y USLT.
+  - M4A y FLAC: etiquetas y carátula con FFmpeg.
+  - MP4 de vídeo: etiquetas sin incrustar una carátula ajena al vídeo.
+- **Historial local** de descargas, con abrir archivo y mostrar en carpeta.
+- **Carpeta de destino configurable**, opción de organizar por artista/álbum y
+  nombres de archivo seguros.
+- **yt-dlp actualizable** desde Ajustes, con comprobación automática al iniciar.
+- **Progreso real** con porcentaje, velocidad y tiempo restante; cancelación.
+- **Portable**: preferencias e historial en `%APPDATA%\pardl-pc`; las descargas
+  van a la carpeta que elijas.
 
-Está pensada para que **cualquier persona pueda usarla sin conocimientos técnicos**: en Windows se extrae de un ZIP y se abre `ParDL.cmd`; en Android se instala el APK. **No requiere instalar Python, FFmpeg ni ninguna dependencia.**
+### Lo que se conserva de la versión CMD original
 
-Todo el proyecto (interfaz, mensajes, documentación y avisos) está **en español**.
+La app de PC mantiene las funciones esenciales de la versión portable antigua:
+MP4/MP3, selección de resolución, selección de carpeta, historial, actualización
+de yt-dlp y uso sin instalación. El código histórico de CMD/PowerShell sigue en
+`src/` como referencia, pero la descarga publicada de PC es la app de escritorio.
 
----
+### Límites conocidos
 
-## Características
-
-- 🎬 **Descarga de video en MP4** con las pistas de audio y video unidas automáticamente.
-- 🎵 **Extracción de audio a MP3** con la tasa de bits que elijas.
-- 🌐 **Navegador integrado** en Android: navega por YouTube, SoundCloud o Bandcamp,
-  elige una página y descarga el audio completo con la calidad real que ofrezca
-  el enlace (sin recodificar). Ver [docs/NAVEGADOR.md](docs/NAVEGADOR.md).
-- 🏷️ **Metadatos vinculados**: tras analizar el audio puedes buscar la misma
-  canción en MusicBrainz, Apple Music, Deezer o Internet Archive, revisar la
-  coincidencia y decidir si se incrustan título, artista, álbum, año, portada y
-  créditos.
-- 🎤 **Letras incrustadas** en FLAC, MP3, M4A y WAV, con texto plano y
-  sincronizado cuando la fuente lo permite.
-- 🧭 **Proveedores con estado real**: Internet Archive, Apple Music (metadatos y
-  vista previa), Deezer (metadatos y vista previa), MusicBrainz, LRCLIB y enlaces
-  directos. TIDAL aparece como preferido configurable, sin simular descargas.
-- 🔐 **Auditoría de extensiones**: los 12 `.sflx` de `registry.json` se verificaron
-  por SHA-256 y se inspeccionaron sin ejecutar. Ver
-  [docs/MUSICA_AUDITORIA.md](docs/MUSICA_AUDITORIA.md).
-- 🎯 **Selección de calidad real**: ParDL comprueba qué resoluciones ofrece el enlace y solo propone las que existen.
-- 📦 **100 % portable**: funciona desde una carpeta o una memoria USB, con rutas relativas.
-- 🖥️ **Interfaz de consola elegante**, con banner ASCII, colores discretos y menús claros, en español.
-- 📊 **Progreso real** con porcentaje, velocidad y tiempo restante (gracias al motor yt-dlp).
-- 🛡️ **Manejo de errores**: enlaces vacíos, mal formados, no compatibles, fallos de red, archivos existentes, interrupciones, etc.
-- 📂 **Carpeta `downloads` automática** junto al programa, sin sobrescribir archivos anteriores.
-- 🔒 **Sin admin, sin PATH, sin instalaciones**: no modifica el sistema.
-- ✅ **Cancelable**: durante una descarga puedes pulsar `Ctrl+C` y volver al menú sin cerrar la aplicación.
-
----
-
-## Captura de la interfaz
-
-```
-  ██████████  ██████████  ████████    ████████    ██
-  ██      ██  ██      ██  ██      ██  ██      ██  ██
-  ██████████  ██████████  ████████    ██      ██  ██
-  ██          ██      ██  ██  ██      ██      ██  ██
-  ██          ██      ██  ██    ██    ████████    ██████████
-
-  ig: andres.par2 | GitHub: andrespar2
-  ParDL v0.1.0  -  Descargador multimedia portable
-  ────────────────────────────────────────────────────────────
-
-  [1] Descargar video (MP4)
-  [2] Descargar audio (MP3)
-  [3] Ver sitios compatibles
-  [4] Información sobre ParDL
-  [5] Salir
-
-  Compatible con múltiples sitios web. Opción 3 para más información.
-
-  Opción:
-```
+- No implementa elusión de DRM ni controles de acceso.
+- No descarga listas de reproducción completas: se procesa un enlace cada vez.
+- Solo hay una descarga activa a la vez.
+- Algunos vídeos privados, con restricción de edad o que exigen inicio de sesión
+  pueden necesitar cookies que la app no solicita.
+- La carátula y las letras dependen de que el proveedor encuentre una
+  coincidencia fiable.
+- GitHub no permite fijar releases de forma nativa; la separación se mantiene
+  con etiquetas, títulos, el índice `docs/RELEASES.md` y los enlaces de descarga
+  de este README.
 
 ---
 
-## Formatos y calidades
+## Uso rápido en Windows
 
-### Video (MP4)
+1. Descarga `ParDL-PC-0.4.0-portable.exe` y ábrelo.
+2. Pega un enlace en **Descargar** y pulsa **Analizar**.
+3. Elige **Vídeo** o **Audio**, y una calidad real de la lista.
+4. Opcional: elige un proveedor y pulsa **Buscar coincidencia** para vincular
+   metadatos, portada y letras.
+5. Elige la carpeta y pulsa **Descargar ahora**.
+6. Al terminar, abre el archivo o la carpeta desde el mismo panel.
 
-| Calidad | Resolución |
-|---|---|
-| 360p  | SD |
-| 480p  | SD |
-| 720p  | HD |
-| 1080p | Full HD |
-| 1440p | 2K |
-| 2160p | 4K |
-| Mejor calidad disponible | la máxima del enlace |
-
-> ParDL detecta las resoluciones **realmente disponibles** en el enlace. Si pides una que no existe, te lo explica y te ofrece la más cercana. Se prioriza MP4 con pistas H.264/AAC para evitar conversiones innecesarias.
-
-### Audio (MP3)
-
-- 128 kbps
-- 192 kbps
-- 256 kbps
-- 320 kbps
-
-> Estos valores son la **tasa de bits de salida**. Convertir un audio de baja calidad a 320 kbps **no recupera** la calidad perdida.
-
----
-
-## Descarga e instalación (versión portable)
-
-1. Ve a la sección **[Releases](../../releases)** y descarga `ParDL-v0.1.0-win64-portable.zip`.
-2. **Extrae todo el contenido** del ZIP en una carpeta (Escritorio, memoria USB…).
-   > Extrae la **carpeta completa**, no solo el `.cmd`.
-3. Abre `ParDL.cmd` con doble clic. Listo.
-
-Los archivos descargados se guardan en `ParDL\downloads\`.
-
-**Requisitos:** Windows 10 o Windows 11 (64 bits). Nada más.
-
----
-
-## Descarga e instalación (Android)
-
-1. Ve a la sección **[Releases](../../releases)** y descarga `ParDL-v0.1.0-android.apk`.
-2. Ábrelo en el teléfono e instálalo (permite *"orígenes desconocidos"* si te lo pregunta).
-3. Abre **ParDL**, entra en **Carpeta y ajustes → Cambiar** y elige dónde quieres guardar las descargas.
-
-**Requisitos:** Android 7.0 o superior. El APK es **universal** (todas las arquitecturas) y ya incluye yt-dlp y FFmpeg.
-
-En Android los archivos se descargan primero en el almacenamiento privado de la app y luego se copian a la carpeta que elijas, de forma segura en Android 10+. También puedes **compartir un enlace con ParDL** desde otras apps.
-
----
-
-## Uso
-
-1. Elige `1` (video MP4) o `2` (audio MP3).
-2. Pega el enlace (clic derecho para pegar en CMD) y pulsa `Enter`.
-3. Elige la calidad y confirma.
-4. Espera a que termine. Puedes **cancelar con `Ctrl+C`** cuando quieras.
-5. Al terminar podrás descargar otro archivo, abrir la carpeta, volver al menú o salir.
-
-La opción **3 – Sitios compatibles** muestra ejemplos conocidos y permite consultar la lista completa de extractores de yt-dlp (paginada o exportada a un archivo de texto).
+También puedes usar **Navegador**, abrir un vídeo y pulsar **Descargar audio** o
+**Descargar vídeo** en la barra inferior.
 
 ---
 
@@ -155,63 +113,66 @@ La opción **3 – Sitios compatibles** muestra ejemplos conocidos y permite con
 
 ```text
 ParDL/
-├── src/                    Código fuente (Windows)
-│   ├── ParDL.cmd           Entrada (CMD)
-│   ├── ParDL.ps1           Aplicación (PowerShell)
-│   └── lib/ParDL.Core.ps1  Funciones internas
-├── android/                App Android (Kotlin + Jetpack Compose)
-│   ├── app/                Módulo de la app
-│   ├── build.gradle.kts
-│   └── keystore.properties Firma de Release (no versionado)
-├── scripts/
-│   ├── download-tools.ps1      Descarga y verifica yt-dlp y FFmpeg
-│   ├── build-portable.ps1      Genera la distribución portable + ZIP
-│   ├── publish-release.ps1     Publica la Release del ZIP en GitHub
-│   └── publish-android-apk.ps1 Adjunta el APK a una Release existente
-├── docs/
-│   ├── README-portable.txt     Instrucciones para el usuario final
-│   ├── release-notes-v0.1.0.md Notas de la Release (Windows)
-│   └── release-notes-android.md Notas de la app Android
-├── tests/                  Pruebas automatizadas (Windows)
-├── dist/                   Distribución generada
-│   └── ParDL/              Versión portable lista para usar/comprimir
+├── pc/                 App de escritorio (Electron)
+│   ├── main.js         Proceso principal, yt-dlp, FFmpeg, metadatos
+│   ├── preload.js      Puente IPC seguro
+│   ├── renderer/       Interfaz Liquid Glass
+│   ├── build/          Icono de la app
+│   └── test/           Pruebas de humo y backend
+├── android/            App Android (Kotlin + Jetpack Compose)
+├── src/                Versión CMD/PowerShell histórica
+├── scripts/            Descarga de herramientas, build y publicación
+├── docs/               Documentación y notas de release
+├── tests/              Pruebas de la versión CMD
+├── dist/               Distribución CMD generada (no versionada)
 ├── README.md
 ├── LICENSE
-├── THIRD_PARTY_NOTICES.txt
-└── .gitignore
+└── THIRD_PARTY_NOTICES.txt
 ```
 
 ---
 
-## Compilar desde el código
+## Compilar la versión de PC
 
-Requiere Windows con PowerShell (incluido) y conexión a Internet para descargar las dependencias.
-
-```powershell
-# 1. Descarga y verifica yt-dlp.exe y ffmpeg.exe (con comprobación SHA-256)
-powershell -ExecutionPolicy Bypass -File scripts\download-tools.ps1
-
-# 2. Construye la distribución portable y el ZIP
-powershell -ExecutionPolicy Bypass -File scripts\build-portable.ps1 -Zip
-```
-
-Resultado:
-
-- Carpeta portable: `dist\ParDL\`
-- Paquete: `dist\ParDL-v0.1.0-win64-portable.zip`
-
-### Pruebas
+Requisitos: Windows 10/11, Node.js 24+ y npm. No hace falta .NET, Python ni Git
+en tiempo de ejecución.
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File tests\run-all.ps1
+cd pc
+
+# Instala Electron y dependencias
+npm install
+
+# Copia las herramientas locales a pc\tools (solo para build)
+# yt-dlp.exe y ffmpeg.exe están en dist\ParDL\tools o .cache\tools
+# (no se versionan)
+
+# Ejecuta en modo desarrollo
+npm start
+
+# Construye el EXE portable
+npm run pack
 ```
+
+Resultado: `pc\release\ParDL-PC-0.4.0-portable.exe`.
+
+Para pruebas:
+
+```powershell
+cd pc
+npm run test:backend
+```
+
+Las pruebas de UI usan `playwright-core` y Electron; consulta `pc/test/`.
+Los binarios `pc/tools/*.exe` y `pc/release/*` no se suben al repositorio:
+se incluyen en el EXE al construir la release.
 
 ---
 
 ## Compilar la app Android
 
 La app está escrita en **Kotlin + Jetpack Compose** (Material 3), con el motor
-`youtubedl-android` (yt-dlp + FFmpeg empaquetados). Requiere JDK 17, el SDK de
+`youtubedl-android` (yt-dlp + FFmpeg empaquetados). Requiere JDK 17, SDK de
 Android (API 34) y Gradle 8.9.
 
 ```powershell
@@ -227,7 +188,7 @@ gradlew.bat assembleRelease
 - Salida de depuración: `android\app\build\outputs\apk\debug\app-debug.apk`
 - Salida de release: `android\app\build\outputs\apk\release\app-release.apk`
 
-Para la firma de Release, crea `android\keystore.properties` (no se versiona):
+Para la firma de release, crea `android\keystore.properties` (no se versiona):
 
 ```properties
 storeFile=../pardl-release.keystore
@@ -236,55 +197,22 @@ keyAlias=pardl
 keyPassword=...
 ```
 
-Si ese archivo no existe, la build de Release cae al firmado de depuración.
-
-### Publicar el APK
-
-```powershell
-powershell -ExecutionPolicy Bypass -File scripts\publish-android-apk.ps1 `
-    -Tag v0.1.0 `
-    -ApkPath android\app\build\outputs\apk\release\app-release.apk `
-    -NotesFile docs\release-notes-android.md -AppendNotes
-```
-
 ---
 
-## Limitaciones conocidas
+## Documentación
 
-- Solo hay binarios para **Windows x64** y un **APK universal de Android** (de momento).
-- El rendimiento y la disponibilidad dependen del sitio y del motor **yt-dlp**.
-- La compatibilidad de sitios puede cambiar con el tiempo.
-- Algunos contenidos requieren inicio de sesión o no están disponibles: ParDL lo informará.
-- No se admiten (por diseño) mecanismos para eludir DRM ni controles de acceso.
-
----
-
-## Uso responsable
-
-ParDL es una **interfaz de usuario** sobre yt-dlp y FFmpeg. Úsala **únicamente con contenido propio o cuya descarga esté autorizada**, y respeta los derechos de autor y las condiciones de cada sitio web. ParDL **no elude DRM** ni medidas de protección.
-
----
-
-## Agradecimientos
-
-ParDL no sería posible sin estos proyectos:
-
-- **[yt-dlp](https://github.com/yt-dlp/yt-dlp)** — motor de descargas (licencia *The Unlicense*).
-- **[FFmpeg](https://ffmpeg.org)** — procesamiento de audio y video (compilación con licencia *GPL v3*).
-
-Consulta `THIRD_PARTY_NOTICES.txt` para más detalles.
+- [Descargas y releases separadas](docs/RELEASES.md)
+- [Guía de ParDL PC](docs/PC.md)
+- [Navegador, metadatos y letras](docs/NAVEGADOR.md)
+- [Notas de la versión PC v0.4.0](docs/release-notes-pc-v0.4.0.md)
+- [Notas de la versión Android v0.3.2](docs/release-notes-v0.3.2.md)
+- [Avisos de terceros](pc/THIRD_PARTY_NOTICES.txt)
 
 ---
 
 ## Créditos
 
-**Desarrollado por andrespar2**
-
-- Instagram: [`@andres.par2`](https://instagram.com/andres.par2)
-- GitHub: [`andrespar2`](https://github.com/andrespar2)
-
----
-
-## Licencia
-
-El código propio de ParDL se distribuye bajo la licencia **MIT**. Ver [LICENSE](LICENSE). Las herramientas de terceros conservan sus propias licencias (ver [THIRD_PARTY_NOTICES.txt](THIRD_PARTY_NOTICES.txt)).
+Proyecto abierto de **andrespar2**. Incluye yt-dlp, FFmpeg, Electron,
+music-metadata y node-id3; cada componente conserva su licencia. Las URLs,
+marcas, vídeos, audio, carátulas y letras pertenecen a sus autores. Usa ParDL
+respetando los términos de cada sitio y la legislación aplicable.

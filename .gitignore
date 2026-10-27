@@ -27,3 +27,12 @@ Thumbs.db
 desktop.ini
 .vscode/
 .idea/
+
+# ===== ParDL PC (Electron) =====
+pc/node_modules/
+pc/tools/
+pc/release/
+pc/test/downloads/
+pc/test/tags/
+pc/test/*.png
+pc/test/*.log

@@ -1,0 +1,46 @@
+ParDL PC — Avisos de terceros
+================================
+
+ParDL para Windows se distribuye con las siguientes herramientas y
+bibliotecas. Cada proyecto conserva sus propios derechos y licencias.
+
+Electron
+--------
+https://www.electronjs.org/
+Licencia MIT. Copyright (c) Electron contributors y GitHub Inc.
+
+Node.js
+-------
+https://nodejs.org/
+Licencia MIT. Copyright Node.js contributors.
+
+yt-dlp
+------
+https://github.com/yt-dlp/yt-dlp
+Licencia Unlicense. Copyright yt-dlp contributors.
+El ejecutable yt-dlp.exe se incluye para realizar las descargas.
+
+FFmpeg
+------
+https://ffmpeg.org/
+FFmpeg es software libre bajo LGPL 2.1 o posterior, con partes bajo GPL
+según la compilación. El ejecutable incluido procede de una compilación
+essentials de gyan.dev.
+Copyright (c) FFmpeg developers.
+
+music-metadata
+--------------
+https://github.com/Borewit/music-metadata
+Licencia MIT. Copyright (c) Borewit.
+
+node-id3
+--------
+https://github.com/Zazama/node-id3
+Licencia MIT. Copyright (c) Zazama y colaboradores.
+
+Contenido descargado
+--------------------
+ParDL no aloja ni distribuye contenido multimedia. Las URLs, marcas,
+vídeos, audio, carátulas y letras pertenecen a sus respectivos autores.
+El usuario es responsable de respetar los términos de cada sitio y la
+legislación aplicable. ParDL no implementa elusión de DRM.
