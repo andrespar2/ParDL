@@ -23,8 +23,10 @@ android {
         applicationId = "com.andrespar2.pardl"
         minSdk = 24
         targetSdk = 34
-        versionCode = 4
-        versionName = "0.3.1"
+        versionCode = 5
+        versionName = "0.3.2"
+
+        resourceConfigurations += listOf("es")
 
         vectorDrawables { useSupportLibrary = true }
 
@@ -49,6 +51,9 @@ android {
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
                 keyPassword = keystoreProps.getProperty("keyPassword")
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
             }
         }
     }
@@ -92,6 +97,9 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/DEPENDENCIES"
+            excludes += "/META-INF/LICENSE*"
+            excludes += "/META-INF/NOTICE*"
         }
         jniLibs {
             // La librería ejecuta binarios nativos desde nativeLibraryDir:

@@ -11,3 +11,8 @@
 -keep class com.yausername.ffmpeg.** { *; }
 
 -dontwarn org.apache.commons.**
+
+# Coil y coroutines
+-dontwarn okhttp3.**
+-dontwarn okio.**
+-dontwarn org.slf4j.**

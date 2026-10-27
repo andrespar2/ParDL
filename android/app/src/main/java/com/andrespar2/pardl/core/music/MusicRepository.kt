@@ -508,6 +508,28 @@ object MusicRepository {
         )
     }
 
+    suspend fun findLyrics(
+        context: Context,
+        title: String,
+        artist: String,
+        durationSec: Int = 0,
+        album: String? = null
+    ): Lyrics? = withContext(Dispatchers.IO) {
+        if (!Prefs.get(context).providerEnabled("lrclib")) return@withContext null
+        val track = TrackCandidate(
+            id = "lyrics:$title:$artist",
+            providerId = "lrclib",
+            providerName = "LRCLIB",
+            title = title,
+            artist = artist,
+            album = album,
+            durationSec = durationSec
+        )
+        withTimeoutOrNull(25_000) {
+            runCatching { LrcLibProvider.lyrics(track) }.getOrNull()
+        }
+    }
+
     private fun cleanSongTitle(raw: String): String {
         var value = raw.trim()
         value = value.replace(

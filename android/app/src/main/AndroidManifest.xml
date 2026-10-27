@@ -44,22 +44,9 @@
         </activity>
 
         <service
-            android:name=".core.music.MusicDownloadService"
-            android:exported="false"
-            android:foregroundServiceType="dataSync" />
-
-        <service
             android:name=".core.LegacyDownloadService"
             android:exported="false"
             android:foregroundServiceType="dataSync" />
-
-        <receiver
-            android:name=".core.music.OpenFileReceiver"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.andrespar2.pardl.action.OPEN_FILE" />
-            </intent-filter>
-        </receiver>
     </application>
 
 </manifest>

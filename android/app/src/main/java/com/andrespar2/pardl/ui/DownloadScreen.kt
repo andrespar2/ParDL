@@ -109,6 +109,7 @@ fun DownloadScreen(
     var metadataError by remember { mutableStateOf<String?>(null) }
     var bindMetadata by remember { mutableStateOf(false) }
     var embedCover by remember { mutableStateOf(true) }
+    var embedLyrics by remember { mutableStateOf(false) }
     var analysisAbortRequested by remember { mutableStateOf(false) }
 
     val engineReady = engineState is EngineState.Ready
@@ -160,7 +161,7 @@ fun DownloadScreen(
             titleHint = media.title,
             metadata = if (kind == DownloadKind.AUDIO && bindMetadata) metadataPreview?.metadata else null,
             embedCover = kind == DownloadKind.AUDIO && embedCover,
-            embedLyrics = false
+            embedLyrics = kind == DownloadKind.AUDIO && embedLyrics
         )
     }
 
@@ -264,8 +265,20 @@ fun DownloadScreen(
                 metadataError = "La búsqueda de metadatos tardó demasiado. Prueba otro proveedor."
             } else {
                 result.onSuccess {
-                    metadataPreview = it
+                    val lyrics = withTimeoutOrNull(25_000) {
+                        MusicRepository.findLyrics(
+                            context = context,
+                            title = it.metadata.title.value ?: media.title,
+                            artist = it.metadata.artist.value ?: media.uploader.orEmpty(),
+                            durationSec = it.metadata.durationSec,
+                            album = it.metadata.album.value
+                        )
+                    }
+                    metadataPreview = it.copy(
+                        metadata = it.metadata.copy(lyrics = lyrics)
+                    )
                     bindMetadata = true
+                    embedLyrics = lyrics != null
                 }.onFailure {
                     metadataError = it.message ?: "No se encontraron metadatos."
                 }
@@ -343,6 +356,8 @@ fun DownloadScreen(
                     metadataError = metadataError,
                     bindMetadata = bindMetadata,
                     onBindMetadataChange = { bindMetadata = it },
+                    embedLyrics = embedLyrics,
+                    onEmbedLyricsChange = { embedLyrics = it },
                     onFindMetadata = { findMetadata() },
                     embedCover = embedCover,
                     onEmbedCoverChange = { embedCover = it }
@@ -379,6 +394,8 @@ private fun FormView(
     metadataError: String?,
     bindMetadata: Boolean,
     onBindMetadataChange: (Boolean) -> Unit,
+    embedLyrics: Boolean,
+    onEmbedLyricsChange: (Boolean) -> Unit,
     onFindMetadata: () -> Unit,
     embedCover: Boolean,
     onEmbedCoverChange: (Boolean) -> Unit
@@ -520,6 +537,8 @@ private fun FormView(
                 error = metadataError,
                 bind = bindMetadata,
                 onBindChange = onBindMetadataChange,
+                embedLyrics = embedLyrics,
+                onEmbedLyricsChange = onEmbedLyricsChange,
                 onFind = onFindMetadata,
                 embedCover = embedCover,
                 onEmbedCoverChange = onEmbedCoverChange
@@ -552,6 +571,8 @@ private fun MetadataBindingSection(
     error: String?,
     bind: Boolean,
     onBindChange: (Boolean) -> Unit,
+    embedLyrics: Boolean,
+    onEmbedLyricsChange: (Boolean) -> Unit,
     onFind: () -> Unit,
     embedCover: Boolean,
     onEmbedCoverChange: (Boolean) -> Unit
@@ -683,6 +704,18 @@ private fun MetadataBindingSection(
                 enabled = preview.metadata.artworkUrl != null,
                 onCheckedChange = onEmbedCoverChange
             )
+            val lyrics = preview.metadata.lyrics
+            GlassSwitchRow(
+                title = "Incrustar letras",
+                subtitle = if (lyrics?.available == true) {
+                    "LRCLIB · ${if (lyrics.syncedAvailable) "sincronizadas" else "texto plano"}"
+                } else {
+                    "No hay letras disponibles para esta coincidencia"
+                },
+                checked = embedLyrics && lyrics?.available == true,
+                enabled = lyrics?.available == true,
+                onCheckedChange = onEmbedLyricsChange
+            )
             Spacer(Modifier.height(4.dp))
             Text(
                 "Se escribirán: " + buildList {
@@ -695,6 +728,7 @@ private fun MetadataBindingSection(
                     preview.metadata.isrc.value?.let { add("ISRC") }
                     preview.metadata.composer.value?.let { add("compositor") }
                     if (embedCover && preview.metadata.artworkUrl != null) add("portada")
+                    if (embedLyrics && preview.metadata.lyrics?.available == true) add("letras")
                 }.ifEmpty { listOf("solo etiquetas básicas") }.joinToString(", "),
                 style = MaterialTheme.typography.labelSmall,
                 color = TextSecondary

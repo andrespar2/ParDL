@@ -13,7 +13,6 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.andrespar2.pardl.core.Engine
 import com.andrespar2.pardl.core.music.HistoryStore
-import com.andrespar2.pardl.core.music.MusicDownloadManager
 import com.andrespar2.pardl.ui.ParDLAppRoot
 import com.andrespar2.pardl.ui.theme.Appearance
 import com.andrespar2.pardl.ui.theme.ParDLTheme
@@ -22,13 +21,11 @@ class MainActivity : ComponentActivity() {
 
     // Enlace recibido por "Compartir con ParDL".
     private val sharedUrl = mutableStateOf<String?>(null)
-    private val openDownloads = mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Appearance.initialize(this)
         HistoryStore.initialize(this)
-        MusicDownloadManager.initialize(this)
         Engine.ensureStarted(this)
         requestNotificationPermission()
         enableEdgeToEdge()
@@ -37,9 +34,7 @@ class MainActivity : ComponentActivity() {
             ParDLTheme {
                 ParDLAppRoot(
                     sharedUrl = sharedUrl.value,
-                    onSharedConsumed = { sharedUrl.value = null },
-                    openDownloads = openDownloads.value,
-                    onOpenDownloadsConsumed = { openDownloads.value = false }
+                    onSharedConsumed = { sharedUrl.value = null }
                 )
             }
         }
@@ -53,9 +48,6 @@ class MainActivity : ComponentActivity() {
 
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
-        if (intent.getBooleanExtra(MusicDownloadManager.EXTRA_OPEN_DOWNLOADS, false)) {
-            openDownloads.value = true
-        }
         if (intent.action == Intent.ACTION_SEND && intent.type?.startsWith("text/") == true) {
             val text = intent.getStringExtra(Intent.EXTRA_TEXT)
             if (!text.isNullOrBlank()) {

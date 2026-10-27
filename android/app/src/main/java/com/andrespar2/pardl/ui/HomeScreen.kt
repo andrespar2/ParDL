@@ -161,7 +161,7 @@ fun HomeScreen(
             ActionCard(
                 icon = Icons.Default.Album,
                 title = "Música",
-                subtitle = "Alta calidad",
+                subtitle = "Buscar y descargar",
                 accent = glass.accent,
                 highlight = true,
                 modifier = Modifier.weight(1f),

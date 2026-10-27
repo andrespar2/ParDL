@@ -37,7 +37,7 @@ object LrcLibProvider : MusicLyricsProvider {
             org.json.JSONArray(Http.getText(url, headers = mapOf("Accept" to "application/json")))
         }.getOrNull() ?: return@withContext null
         val candidates = (0 until root.length()).mapNotNull { root.optJSONObject(it) }
-        if (candidates.isEmpty()) return@withContext null
+        if (candidates.isEmpty()) return@withContext fromGet(track)
         val best = candidates
             .filter { !it.optBoolean("instrumental") }
             .minByOrNull { candidate ->
@@ -47,11 +47,35 @@ object LrcLibProvider : MusicLyricsProvider {
                 } else {
                     Int.MAX_VALUE / 2
                 }
-            } ?: return@withContext null
+            } ?: return@withContext fromGet(track)
         val plain = JsonUtil.text(best, "plainLyrics")
         val synced = JsonUtil.text(best, "syncedLyrics")
-        if (plain.isNullOrBlank() && synced.isNullOrBlank()) return@withContext null
+        if (plain.isNullOrBlank() && synced.isNullOrBlank()) return@withContext fromGet(track)
         Lyrics(
+            plain = plain,
+            synced = synced,
+            language = null,
+            source = "LRCLIB",
+            licenseNote = "Letras aportadas por la comunidad de LRCLIB. " +
+                "Incrústalas solo si tienes derecho a hacerlo."
+        )
+    }
+
+    /** Segunda vía de LRCLIB: búsqueda exacta por artista, título y duración. */
+    private suspend fun fromGet(track: TrackCandidate): Lyrics? {
+        val url = "https://lrclib.net/api/get" +
+            "?track_name=${Http.encode(track.title)}" +
+            "&artist_name=${Http.encode(track.artist)}" +
+            (track.album?.let { "&album_name=${Http.encode(it)}" } ?: "") +
+            (if (track.durationSec > 0) "&duration=${track.durationSec}" else "")
+        val obj = runCatching {
+            JSONObject(Http.getText(url, headers = mapOf("Accept" to "application/json")))
+        }.getOrNull() ?: return null
+        if (obj.optBoolean("instrumental")) return null
+        val plain = JsonUtil.text(obj, "plainLyrics")
+        val synced = JsonUtil.text(obj, "syncedLyrics")
+        if (plain.isNullOrBlank() && synced.isNullOrBlank()) return null
+        return Lyrics(
             plain = plain,
             synced = synced,
             language = null,

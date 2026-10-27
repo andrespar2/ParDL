@@ -104,7 +104,7 @@ fun SettingsScreen(onBack: () -> Unit) {
     Column(Modifier.fillMaxSize()) {
         GlassTopBar(
             title = "Carpeta y ajustes",
-            subtitle = "Todo lo anterior sigue aquí, más música y cristal",
+            subtitle = "Carpeta, apariencia, metadatos y motor",
             onBack = onBack
         )
         Column(
@@ -219,59 +219,6 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             Spacer(Modifier.height(16.dp))
-            SectionLabel("Música — calidad y alternativas")
-            Spacer(Modifier.height(6.dp))
-            GlassCard(padding = 14.dp) {
-                Text(
-                    "Proveedor preferido: ${prefs.musicPreferredProvider}",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = glass.textPrimary
-                )
-                Text(
-                    "Gestiona el orden, el estado y las integraciones en Proveedores.",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = glass.textSecondary
-                )
-                Spacer(Modifier.height(6.dp))
-                GlassSwitchRow(
-                    "Priorizar FLAC",
-                    "Se recomienda FLAC antes que cualquier formato con pérdida",
-                    prefs.musicFlacFirst
-                ) { prefs.musicFlacFirst = it; touched() }
-                GlassSwitchRow(
-                    "Priorizar FLAC Hi-Res",
-                    "24 bit o más de 48 kHz, solo cuando es real",
-                    prefs.musicHiResFirst
-                ) { prefs.musicHiResFirst = it; touched() }
-                GlassSwitchRow(
-                    "Preferir audio espacial",
-                    "Dolby Atmos se muestra aparte; no equivale a FLAC",
-                    prefs.musicPreferSpatial
-                ) { prefs.musicPreferSpatial = it; touched() }
-                GlassSwitchRow(
-                    "Mostrar todas las calidades",
-                    "Incluye alternativas comprimidas y de menor bitrate",
-                    prefs.musicShowAll
-                ) { prefs.musicShowAll = it; touched() }
-                GlassSwitchRow(
-                    "Solo formatos sin pérdidas",
-                    "No permite descargar MP3, AAC u Opus",
-                    prefs.musicLosslessOnly
-                ) { prefs.musicLosslessOnly = it; touched() }
-                GlassSwitchRow(
-                    "Aceptar formatos con pérdida si no hay FLAC",
-                    "Se muestran como alternativas, nunca se eligen en silencio",
-                    prefs.musicAllowLossy,
-                    enabled = !prefs.musicLosslessOnly
-                ) { prefs.musicAllowLossy = it; touched() }
-                GlassSwitchRow(
-                    "Preguntar antes de cambiar de calidad",
-                    "Recomendado: confirmar siempre antes de descargar",
-                    prefs.musicAskOnChange
-                ) { prefs.musicAskOnChange = it; touched() }
-            }
-
-            Spacer(Modifier.height(16.dp))
             SectionLabel("Metadatos, portadas y letras")
             Spacer(Modifier.height(6.dp))
             GlassCard(padding = 14.dp) {
@@ -298,38 +245,14 @@ fun SettingsScreen(onBack: () -> Unit) {
             }
 
             Spacer(Modifier.height(16.dp))
-            SectionLabel("Descargas y segundo plano")
+            SectionLabel("Notificaciones")
             Spacer(Modifier.height(6.dp))
             GlassCard(padding = 14.dp) {
                 Text(
-                    "Descargas simultáneas: ${prefs.musicConcurrent}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = glass.textPrimary
+                    "Las descargas muestran progreso y controles en una notificación.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = glass.textSecondary
                 )
-                Slider(
-                    value = prefs.musicConcurrent.toFloat(),
-                    onValueChange = {
-                        prefs.musicConcurrent = it.roundToInt()
-                        touched()
-                    },
-                    valueRange = 1f..5f,
-                    steps = 3,
-                    colors = SliderDefaults.colors(
-                        thumbColor = glass.accent,
-                        activeTrackColor = glass.accent,
-                        inactiveTrackColor = glass.glassStrong
-                    )
-                )
-                GlassSwitchRow(
-                    "Notificaciones de descarga",
-                    "Progreso, velocidad, ETA y controles reales",
-                    prefs.musicNotifications
-                ) { prefs.musicNotifications = it; touched() }
-                GlassSwitchRow(
-                    "Continuar en segundo plano",
-                    "La cola se reanuda al volver a ParDL si Android cierra el servicio",
-                    prefs.musicBackground
-                ) { prefs.musicBackground = it; touched() }
                 if (needsNotificationPermission) {
                     Spacer(Modifier.height(8.dp))
                     PillButton(
@@ -357,11 +280,20 @@ fun SettingsScreen(onBack: () -> Unit) {
                 )
                 Spacer(Modifier.height(6.dp))
                 Text(
-                    "Si un sitio deja de funcionar, actualiza el motor. No afecta a la " +
-                        "cola de música, que usa HTTP directo y proveedores autorizados.",
+                    "El motor puede actualizarse solo al iniciar. También puedes forzar " +
+                        "la comprobación manualmente si un sitio deja de funcionar.",
                     style = MaterialTheme.typography.bodySmall,
                     color = glass.textSecondary
                 )
+                GlassSwitchRow(
+                    "Actualizar yt-dlp automáticamente",
+                    "Comprueba la última versión al iniciar la app",
+                    prefs.autoUpdateYtdlp
+                ) {
+                    prefs.autoUpdateYtdlp = it
+                    if (it) prefs.ytdlpAutoUpdated = false
+                    touched()
+                }
                 Spacer(Modifier.height(9.dp))
                 PillButton(
                     text = if (updating) "Actualizando…" else "Actualizar yt-dlp",
@@ -372,7 +304,11 @@ fun SettingsScreen(onBack: () -> Unit) {
                         updateMsg = null
                         scope.launch {
                             Engine.updateYtdlp(context)
-                                .onSuccess { updateMsg = it; updateOk = true }
+                                .onSuccess {
+                                    updateMsg = it
+                                    updateOk = true
+                                    prefs.ytdlpAutoUpdated = true
+                                }
                                 .onFailure {
                                     updateMsg = "No se pudo actualizar: ${it.message ?: "error"}"
                                     updateOk = false

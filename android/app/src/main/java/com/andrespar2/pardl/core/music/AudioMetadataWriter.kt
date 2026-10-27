@@ -74,7 +74,7 @@ object AudioMetadataWriter {
         val format = detectFormat(file)
         val fields = buildFieldMap(metadata)
         val coverToUse = if (embedCover) cover else null
-        val lyrics = if (embedLyrics) metadata.lyrics?.plain else null
+        val lyrics = if (embedLyrics) metadata.lyrics else null
         val result = try {
             when (format) {
                 AudioFormat.FLAC -> writeFlac(file, fields, coverToUse, lyrics)
@@ -196,7 +196,7 @@ object AudioMetadataWriter {
         file: File,
         fields: Map<String, String>,
         cover: CoverData?,
-        lyrics: String?
+        lyrics: Lyrics?
     ): WriteResult {
         val temp = tempFor(file)
         if (temp.exists()) temp.delete()
@@ -264,12 +264,12 @@ object AudioMetadataWriter {
         replaceFile(temp, file)
         val written = fields.keys.toMutableList()
         if (cover != null) written += "PICTURE"
-        if (!lyrics.isNullOrBlank()) written += "LYRICS"
+        if (hasLyrics(lyrics)) written += "LYRICS"
         return WriteResult(
             format = AudioFormat.FLAC,
             fields = written,
             artwork = cover != null,
-            lyrics = !lyrics.isNullOrBlank()
+            lyrics = hasLyrics(lyrics)
         )
     }
 
@@ -318,14 +318,21 @@ object AudioMetadataWriter {
     private fun applyVorbisFields(
         map: LinkedHashMap<String, MutableList<String>>,
         fields: Map<String, String>,
-        lyrics: String?
+        lyrics: Lyrics?
     ) {
         fields.forEach { (key, value) ->
             map[key] = mutableListOf(value)
         }
-        if (!lyrics.isNullOrBlank()) {
-            map["LYRICS"] = mutableListOf(lyrics)
-            map["UNSYNCEDLYRICS"] = mutableListOf(lyrics)
+        if (hasLyrics(lyrics)) {
+            val plain = plainLyrics(lyrics)
+            val synced = syncedLyrics(lyrics)
+            if (!plain.isNullOrBlank()) {
+                map["LYRICS"] = mutableListOf(plain)
+                map["UNSYNCEDLYRICS"] = mutableListOf(plain)
+            }
+            if (!synced.isNullOrBlank()) {
+                map["SYNCEDLYRICS"] = mutableListOf(synced)
+            }
         }
     }
 
@@ -373,7 +380,7 @@ object AudioMetadataWriter {
         file: File,
         fields: Map<String, String>,
         cover: CoverData?,
-        lyrics: String?
+        lyrics: Lyrics?
     ): WriteResult {
         val tag = buildId3Tag(fields, cover, lyrics)
         if (tag.isEmpty()) {
@@ -413,7 +420,7 @@ object AudioMetadataWriter {
             format = AudioFormat.MP3,
             fields = fields.keys.toList(),
             artwork = cover != null,
-            lyrics = !lyrics.isNullOrBlank(),
+            lyrics = hasLyrics(lyrics),
             skipped = emptyList()
         )
     }
@@ -421,7 +428,7 @@ object AudioMetadataWriter {
     private fun buildId3Tag(
         fields: Map<String, String>,
         cover: CoverData?,
-        lyrics: String?
+        lyrics: Lyrics?
     ): ByteArray {
         val frames = ByteArrayOutputStream()
         fun text(id: String, key: String) {
@@ -442,8 +449,9 @@ object AudioMetadataWriter {
         fields["LABEL"]?.let { frames.write(txxxFrame("LABEL", it)) }
         fields["COPYRIGHT"]?.let { frames.write(txxxFrame("COPYRIGHT", it)) }
         fields["CREDITS"]?.let { frames.write(txxxFrame("CREDITS", it)) }
-        if (!lyrics.isNullOrBlank()) {
-            frames.write(usltFrame(lyrics))
+        val plain = plainLyrics(lyrics)
+        if (!plain.isNullOrBlank()) {
+            frames.write(usltFrame(plain))
         }
         if (cover != null) {
             frames.write(apicFrame(cover))
@@ -533,7 +541,7 @@ object AudioMetadataWriter {
         file: File,
         fields: Map<String, String>,
         cover: CoverData?,
-        lyrics: String?
+        lyrics: Lyrics?
     ): WriteResult {
         val top = readTopBoxes(file)
         if (top.any { it.type == "moof" }) {
@@ -570,7 +578,7 @@ object AudioMetadataWriter {
         setMp4Text(ilst, "©gen", fields["GENRE"])
         setMp4Text(ilst, "©wrt", fields["COMPOSER"])
         setMp4Text(ilst, "cprt", fields["COPYRIGHT"])
-        setMp4Text(ilst, "©lyr", lyrics)
+        setMp4Text(ilst, "©lyr", plainLyrics(lyrics) ?: syncedLyrics(lyrics))
         setMp4Pair(ilst, "trkn", fields["TRACKNUMBER"])
         setMp4Pair(ilst, "disk", fields["DISCNUMBER"])
         if (cover != null) setMp4Cover(ilst, cover)
@@ -593,7 +601,7 @@ object AudioMetadataWriter {
             format = AudioFormat.AAC,
             fields = fields.keys.toList(),
             artwork = cover != null,
-            lyrics = !lyrics.isNullOrBlank(),
+            lyrics = hasLyrics(lyrics),
             skipped = listOf("ISRC/letras sincronizadas no se escriben en MP4")
         )
     }
@@ -782,7 +790,7 @@ object AudioMetadataWriter {
         file: File,
         fields: Map<String, String>,
         cover: CoverData?,
-        lyrics: String?
+        lyrics: Lyrics?
     ): WriteResult {
         val tag = buildId3Tag(fields, cover, lyrics)
         if (tag.isEmpty()) {
@@ -819,7 +827,7 @@ object AudioMetadataWriter {
             format = AudioFormat.WAV,
             fields = fields.keys.toList(),
             artwork = cover != null,
-            lyrics = !lyrics.isNullOrBlank(),
+            lyrics = hasLyrics(lyrics),
             skipped = listOf("Las letras sincronizadas no se escriben en WAV")
         )
     }
@@ -892,6 +900,23 @@ object AudioMetadataWriter {
             ((b[2].toInt() and 0xFF) shl 16) or
             ((b[3].toInt() and 0xFF) shl 24)
     }
+
+    private fun hasLyrics(lyrics: Lyrics?): Boolean =
+        !plainLyrics(lyrics).isNullOrBlank() || !syncedLyrics(lyrics).isNullOrBlank()
+
+    private fun plainLyrics(lyrics: Lyrics?): String? {
+        lyrics?.plain?.takeIf { it.isNotBlank() }?.let { return it }
+        return syncedLyrics(lyrics)?.let { stripLrcTimestamps(it) }?.takeIf { it.isNotBlank() }
+    }
+
+    private fun syncedLyrics(lyrics: Lyrics?): String? =
+        lyrics?.synced?.takeIf { it.isNotBlank() }
+
+    /** Convierte LRC a texto plano para formatos que no admiten sincronía. */
+    private fun stripLrcTimestamps(text: String): String =
+        text.replace(Regex("""\[\d{1,2}:\d{2}(?:\.\d{1,3})?]\s*"""), "")
+            .replace(Regex("""^\[\w+:[^\]]*]\s*$""", RegexOption.MULTILINE), "")
+            .trim()
 
     private fun ByteArray.matchesAscii(offset: Int, text: String): Boolean {
         if (offset < 0 || offset + text.length > size) return false

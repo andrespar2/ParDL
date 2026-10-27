@@ -1,6 +1,7 @@
 package com.andrespar2.pardl.core
 
 import android.content.Context
+import com.andrespar2.pardl.core.Prefs
 import com.yausername.ffmpeg.FFmpeg
 import com.yausername.youtubedl_android.YoutubeDL
 import com.yausername.youtubedl_android.YoutubeDLRequest
@@ -38,10 +39,28 @@ object Engine {
                 YoutubeDL.getInstance().init(app)
                 FFmpeg.getInstance().init(app)
                 _state.value = EngineState.Ready
+                autoUpdateYtdlp(app)
             } catch (t: Throwable) {
                 _state.value = EngineState.Failed(
                     t.message ?: "No se pudo iniciar el motor de descargas."
                 )
+            }
+        }
+    }
+
+    /**
+     * Deja el motor al día sin que el usuario tenga que pulsar nada. Se hace
+     * una sola vez; si no hay conexión, se reintenta en el siguiente arranque.
+     */
+    private fun autoUpdateYtdlp(context: Context) {
+        val prefs = Prefs.get(context)
+        if (!prefs.autoUpdateYtdlp || prefs.ytdlpAutoUpdated) return
+        scope.launch {
+            try {
+                YoutubeDL.updateYoutubeDL(context, YoutubeDL.UpdateChannel.STABLE)
+                prefs.ytdlpAutoUpdated = true
+            } catch (_: Throwable) {
+                // Sin conexión o canal no disponible: se reintenta más tarde.
             }
         }
     }

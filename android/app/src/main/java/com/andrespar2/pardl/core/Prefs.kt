@@ -113,6 +113,15 @@ class Prefs private constructor(context: Context) {
         get() = sp.getBoolean(KEY_BACKGROUND, true)
         set(value) = sp.edit().putBoolean(KEY_BACKGROUND, value).apply()
 
+    /** Actualiza yt-dlp automáticamente la primera vez que hay conexión. */
+    var autoUpdateYtdlp: Boolean
+        get() = sp.getBoolean(KEY_AUTO_UPDATE, true)
+        set(value) = sp.edit().putBoolean(KEY_AUTO_UPDATE, value).apply()
+
+    var ytdlpAutoUpdated: Boolean
+        get() = sp.getBoolean(KEY_AUTO_UPDATED, false)
+        set(value) = sp.edit().putBoolean(KEY_AUTO_UPDATED, value).apply()
+
     fun qualityPolicy(): QualityPolicy = QualityPolicy(
         flacFirst = musicFlacFirst,
         hiResFirst = musicHiResFirst,
@@ -157,6 +166,8 @@ class Prefs private constructor(context: Context) {
         private const val KEY_CONCURRENT = "music_concurrent"
         private const val KEY_NOTIFICATIONS = "music_notifications"
         private const val KEY_BACKGROUND = "music_background"
+        private const val KEY_AUTO_UPDATE = "ytdlp_auto_update"
+        private const val KEY_AUTO_UPDATED = "ytdlp_auto_updated"
 
         @Volatile
         private var instance: Prefs? = null

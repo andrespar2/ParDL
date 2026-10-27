@@ -14,14 +14,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import com.andrespar2.pardl.core.DownloadKind
 import com.andrespar2.pardl.core.music.HistoryStore
-import com.andrespar2.pardl.core.music.MusicDownloadManager
-import com.andrespar2.pardl.ui.music.MusicScreen
 
 /** Pantallas de la aplicación. */
 sealed interface Screen {
     data object Home : Screen
     data class Download(val kind: DownloadKind, val nonce: Int) : Screen
-    data object Music : Screen
     data object Downloads : Screen
     data object History : Screen
     data object Providers : Screen
@@ -34,22 +31,15 @@ sealed interface Screen {
 @Composable
 fun ParDLAppRoot(
     sharedUrl: String?,
-    onSharedConsumed: () -> Unit,
-    openDownloads: Boolean = false,
-    onOpenDownloadsConsumed: () -> Unit = {}
+    onSharedConsumed: () -> Unit
 ) {
     val context = LocalContext.current
-    var screen by remember {
-        mutableStateOf<Screen>(if (openDownloads) Screen.Downloads else Screen.Home)
-    }
+    var screen by remember { mutableStateOf<Screen>(Screen.Home) }
     var prefillUrl by remember { mutableStateOf<String?>(null) }
     var downloadNonce by remember { mutableStateOf(0) }
 
     LaunchedEffect(Unit) {
         HistoryStore.initialize(context)
-        MusicDownloadManager.initialize(context)
-        MusicDownloadManager.resumePending(context)
-        if (openDownloads) onOpenDownloadsConsumed()
     }
 
     // Maneja "Compartir enlace con ParDL".
@@ -82,7 +72,7 @@ fun ParDLAppRoot(
                         prefillUrl = null; downloadNonce++
                         screen = Screen.Download(DownloadKind.AUDIO, downloadNonce)
                     },
-                    onMusic = { screen = Screen.Music },
+                    onMusic = { screen = Screen.Browser },
                     onDownloads = { screen = Screen.Downloads },
                     onHistory = { screen = Screen.History },
                     onProviders = { screen = Screen.Providers },
@@ -99,19 +89,8 @@ fun ParDLAppRoot(
                     onBack = { screen = Screen.Home }
                 )
 
-                is Screen.Music -> MusicScreen(
-                    onBack = { screen = Screen.Home },
-                    onOpenDownloads = { screen = Screen.Downloads },
-                    onLegacy = { url, kind ->
-                        prefillUrl = url
-                        downloadNonce++
-                        screen = Screen.Download(kind, downloadNonce)
-                    }
-                )
-
                 is Screen.Downloads -> DownloadsScreen(
                     onBack = { screen = Screen.Home },
-                    onOpenDownloads = { screen = Screen.Music },
                     onLegacy = { kind ->
                         prefillUrl = null; downloadNonce++
                         screen = Screen.Download(kind, downloadNonce)

@@ -3,7 +3,6 @@ package com.andrespar2.pardl
 import android.app.Application
 import com.andrespar2.pardl.core.Engine
 import com.andrespar2.pardl.core.music.HistoryStore
-import com.andrespar2.pardl.core.music.MusicDownloadManager
 import com.andrespar2.pardl.ui.theme.Appearance
 
 class ParDLApp : Application() {
@@ -13,6 +12,5 @@ class ParDLApp : Application() {
         Engine.ensureStarted(this)
         Appearance.initialize(this)
         HistoryStore.initialize(this)
-        MusicDownloadManager.initialize(this)
     }
 }
