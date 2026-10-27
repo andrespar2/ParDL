@@ -1,119 +1,48 @@
-# Música — Alta calidad en ParDL
+# Motor de audio y metadatos
 
-Módulo independiente del motor clásico MP3/MP4. Conserva yt-dlp + FFmpeg para
-las descargas tradicionales y añade búsqueda multiproveedor, calidades
-verificadas, metadatos, portadas, letras y descargas persistentes.
+El módulo de música independiente ya no se muestra como catálogo. El flujo
+principal es el **navegador**: eliges una página, analizas el enlace y descargas
+el audio completo con la calidad real disponible.
 
-## Flujo
+## Qué hace el motor
 
-**Buscar → elegir canción → consultar calidades → revisar metadatos → confirmar → descargar**
+- Lee los formatos y bitrates reales de yt-dlp; no inventa calidades.
+- Conserva el formato original (no recodifica) y permite elegir entre las
+  opciones disponibles.
+- Descarga en segundo plano con notificación y cancelación.
+- Escribe metadatos con `AudioMetadataWriter`:
+  - FLAC: Vorbis Comments y PICTURE.
+  - MP3: ID3v2.4, USLT y APIC.
+  - M4A: átomos `ilst` y `©lyr`.
+  - WAV: chunk ID3.
+- Verifica el archivo final: formato, duración, canales, frecuencia, bits,
+  etiquetas, portada, letras y SHA-256.
 
-Ningún toque sobre un resultado inicia una descarga. El selector muestra
-formatos y datos técnicos reales; si FLAC no existe, lo dice y presenta las
-alternativas encontradas.
+## Metadatos de otro proveedor
 
-## Proveedores integrados
+Desde la pantalla de audio puedes buscar la misma canción en MusicBrainz,
+Apple Music, Deezer o Internet Archive. Se muestra la coincidencia, la portada
+y los campos disponibles. La escritura es opcional y se confirma antes de
+descargar.
 
-| Proveedor | Búsqueda | Metadatos | Letras | Audio | Estado |
-|---|---|---|---|---|---|
-| Internet Archive | Sí | Sí | — | FLAC/MP3/OGG/WAV/AAC completos | Disponible |
-| Apple Music / iTunes | Sí | Sí | — | Vista previa AAC de 30 s | Disponible |
-| Deezer | Sí | Sí | — | Vista previa MP3 de 30 s | Disponible |
-| MusicBrainz | — | Sí (ISRC, sello, pista) | — | — | Disponible |
-| LRCLIB | — | — | Sí | — | Disponible |
-| Spotify Web | Solo enlaces | Identificación | — | — | Depende de oEmbed público |
-| Enlace directo | URL HTTPS | Básico | — | Archivo real | Disponible |
-| TIDAL | — | — | — | — | Requiere autenticación autorizada |
+## Letras
 
-TIDAL aparece como **preferencia inicial configurable**, pero su descarga no
-está integrada: no se simula ni se atribuye audio a TIDAL.
+LRCLIB aporta letras planas y sincronizadas. Si existen, la pantalla permite
+incrustarlas; en FLAC se escriben `LYRICS`, `UNSYNCEDLYRICS` y `SYNCEDLYRICS`.
+En MP3/M4A/WAV se usa el texto plano (o el sincronizado convertido a texto).
+Solo deben incrustarse letras cuyo uso esté permitido.
 
-## Política de calidades
+## Formatos y metadatos
 
-1. FLAC Hi-Res auténtico (24 bit / 96–192 kHz).
-2. FLAC Lossless (16 bit / 44.1–48 kHz).
-3. Otros sin pérdidas (ALAC, WAV, AIFF, PCM).
-4. Audio espacial (Dolby Atmos) mostrado por separado.
-5. Comprimidos de alta calidad (Opus/AAC/MP3 con bitrate real).
-6. Alternativas de menor bitrate.
-7. Vistas previas de 30 s, siempre marcadas y al final.
+- Metadatos completos: MP3, M4A, FLAC, WAV.
+- Etiquetas básicas: WebM/Opus.
+- Formatos no compatibles con el escritor: se conserva el audio y se informa.
 
-Reglas:
+## Motor yt-dlp
 
-- `verified = true` solo cuando la cabecera se leyó del archivo real
-  (FLAC STREAMINFO, primer frame MP3, cabecera Vorbis/WAV).
-- `verified = false` se muestra como **estimado**.
-- Nunca se convierte audio con pérdida a FLAC.
-- Nunca se inventan bitrates, resoluciones ni disponibilidad.
-- Las vistas previas no se recomiendan como canción completa.
+La app comprueba e instala la última versión estable de yt-dlp al iniciar, si
+hay conexión. También puedes forzar la actualización desde Ajustes. La
+disponibilidad de cada web depende de yt-dlp y de sus propias restricciones.
 
-## Metadatos
-
-- FLAC: Vorbis Comments + bloque PICTURE.
-- MP3: ID3v2.4 (TIT2, TPE1, TALB, TPE2, TDRC, TCON, TRCK, TPOS, TSRC, TCOM,
-  TXXX, USLT, APIC).
-- MP4/M4A: átomos `ilst` (`©nam`, `©ART`, `aART`, `©alb`, `©day`, `©gen`,
-  `trkn`, `disk`, `©wrt`, `©lyr`, `covr`). El `moov` se reconstruye al final y
-  el antiguo se sustituye por un bloque `free` del mismo tamaño, sin mover
-  `mdat` ni alterar los offsets.
-- WAV: chunk `id3 `.
-- OGG/Opus y AIFF: se conservan intactos; la interfaz informa de la limitación.
-
-Después de descargar se verifica formato, duración, canales, frecuencia,
-profundidad, etiquetas legibles, portada, letras y SHA-256. La vista previa
-muestra qué etiquetas se escribirán y qué campos no están disponibles.
-
-## Descargas persistentes
-
-- Cola en `pardl_music_queue.json`.
-- Servicio en primer plano `MusicDownloadService` (`dataSync`).
-- Reanudación con HTTP Range cuando el servidor responde 206.
-- Pausa, reanudación, cancelación, reintentos y concurrencia configurable (1–5).
-- Notificaciones con progreso, velocidad, ETA, proveedor, calidad y acciones.
-- Recuperación al volver a abrir ParDL si Android cerró el proceso.
-- El servicio clásico `LegacyDownloadService` mantiene vivo yt-dlp/FFmpeg,
-  con cancelación en la notificación. yt-dlp no ofrece pausa real.
-
-Android no garantiza continuidad tras una detención forzada desde Ajustes; en
-ese caso la cola queda persistida y se reanuda al abrir la app.
-
-## Navegador y audio completo
-
-El módulo de música no es la única vía. Desde **Navegador web** se puede
-descargar el audio completo de enlaces compatibles con yt-dlp, conservando el
-formato original y eligiendo entre los bitrates reales declarados. Después se
-pueden vincular metadatos de otro proveedor antes de escribir las etiquetas.
-Ver [NAVEGADOR.md](NAVEGADOR.md).
-
-## Archivos principales
-
-```
-core/music/MusicModels.kt           modelos, calidades, serialización
-core/music/Providers.kt             contratos de proveedores
-core/music/ArtworkLoader.kt         descarga de portada para etiquetar
-ui/BrowserScreen.kt                 navegador WebView interno
-core/music/ProviderRegistry        proveedores y orden (MusicProviders)
-core/music/MusicRepository.kt       búsqueda, enlaces, calidades, metadatos
-core/music/TrackMatchEngine.kt      ISRC, título, artistas, versión, duración
-core/music/AudioProbe.kt            FLAC/MP3/OGG/WAV
-core/music/AudioFileVerifier.kt     verificación final + SHA-256
-core/music/AudioMetadataWriter.kt   FLAC/MP3/MP4/WAV
-core/music/MusicDownloadManager.kt  cola persistente
-core/music/MusicDownloadService.kt  descarga en segundo plano
-core/music/providers/*              Archive, iTunes, Deezer, MusicBrainz, LRCLIB…
-ui/music/MusicScreen.kt             búsqueda, calidades, vista previa, lote
-ui/DownloadsScreen.kt               cola y controles
-ui/ProvidersScreen.kt               estado real y auditoría
-```
-
-## Limitaciones legales y técnicas
-
-ParDL **no** implementa elusión de DRM, cuentas, paywalls ni controles de
-acceso. Por eso:
-
-- TIDAL/Qobuz/Amazon no ofrecen audio completo: requieren autorización.
-- Spotify solo identifica; su oEmbed público puede devolver 5xx temporalmente.
-- Apple Music y Deezer solo entregan las vistas previas que publican.
-- Internet Archive entrega audio completo cuando la licencia y el archivo son
-  públicos; los archivos marcados como privados o restringidos se omiten.
-- Las extensiones `.sflx` auditadas no se ejecutan ni se portan.
+No se eluden DRM, cuentas ni controles de acceso. Descarga solo contenido
+propio o autorizado.

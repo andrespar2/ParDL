@@ -33,7 +33,7 @@ La interfaz indica:
 Si eliges un formato sin etiquetado completo, el audio se conserva en su
 calidad original y yt-dlp aplica las etiquetas básicas que soporte.
 
-## Metadatos vinculados
+## Metadatos y letras vinculados
 
 El proveedor de audio y el proveedor de metadatos son independientes. Puedes
 descargar el audio de YouTube/SoundCloud y vincular los metadatos de Apple
@@ -44,7 +44,13 @@ Music, Deezer, MusicBrainz o Internet Archive.
 - Se prioriza una coincidencia fiable; si no existe, se informa y no se
   inventan datos.
 - La portada se descarga y se incrusta si el usuario lo confirma.
+- LRCLIB aporta letras planas y sincronizadas. Puedes revisarlas e incrustarlas
+  en FLAC, MP3, M4A y WAV.
 - La escritura final usa `AudioMetadataWriter` (FLAC/MP3/M4A/WAV).
+
+La URL que se envía al motor es la del video en reproducción, no una dirección
+antigua que pueda quedar en la barra superior. La barra se actualiza al cambiar
+de video dentro de YouTube.
 
 ## Limitaciones reales
 

@@ -4,7 +4,7 @@
 
 Versión **portable para Windows** (sin instalar nada) y **app Android** con **Liquid Glass** (oscuro, claro y AMOLED).
 
-[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.1-00b4d8.svg)](#)
+[![Versión](https://img.shields.io/badge/versi%C3%B3n-0.3.2-00b4d8.svg)](#)
 [![Plataforma](https://img.shields.io/badge/Windows-10%20%7C%2011-0078d4.svg)](#)
 [![Android](https://img.shields.io/badge/Android-7.0%2B-3ddc84.svg)](#)
 [![Licencia](https://img.shields.io/badge/licencia-MIT-green.svg)](LICENSE)
@@ -35,9 +35,6 @@ Todo el proyecto (interfaz, mensajes, documentación y avisos) está **en españ
 
 - 🎬 **Descarga de video en MP4** con las pistas de audio y video unidas automáticamente.
 - 🎵 **Extracción de audio a MP3** con la tasa de bits que elijas.
-- 💎 **Música — Alta calidad** en Android: búsqueda multiproveedor, **FLAC primero**,
-  calidades reales verificadas, selector manual, metadatos, portadas, letras y
-  descargas persistentes en segundo plano. Ver [docs/MUSICA.md](docs/MUSICA.md).
 - 🌐 **Navegador integrado** en Android: navega por YouTube, SoundCloud o Bandcamp,
   elige una página y descarga el audio completo con la calidad real que ofrezca
   el enlace (sin recodificar). Ver [docs/NAVEGADOR.md](docs/NAVEGADOR.md).
@@ -45,6 +42,8 @@ Todo el proyecto (interfaz, mensajes, documentación y avisos) está **en españ
   canción en MusicBrainz, Apple Music, Deezer o Internet Archive, revisar la
   coincidencia y decidir si se incrustan título, artista, álbum, año, portada y
   créditos.
+- 🎤 **Letras incrustadas** en FLAC, MP3, M4A y WAV, con texto plano y
+  sincronizado cuando la fuente lo permite.
 - 🧭 **Proveedores con estado real**: Internet Archive, Apple Music (metadatos y
   vista previa), Deezer (metadatos y vista previa), MusicBrainz, LRCLIB y enlaces
   directos. TIDAL aparece como preferido configurable, sin simular descargas.

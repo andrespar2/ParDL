@@ -12,7 +12,7 @@ ni detalles de dispositivos concretos.
 
 ## Pruebas unitarias
 
-`28` pruebas locales:
+`30` pruebas locales:
 
 - `QualityRankerTest`: prioridad FLAC/Hi-Res, filtros lossless, audio espacial,
   vistas previas y mensajes de disponibilidad.
@@ -22,18 +22,17 @@ ni detalles de dispositivos concretos.
 - `UrlRouterTest`: Spotify, Apple, Deezer, TIDAL, YouTube, Internet Archive,
   archivos directos y normalización de enlaces.
 - `FormatTest`: conversión de formatos reales de yt-dlp en opciones de calidad.
+- `AudioMetadataWriterTest`: letras planas y sincronizadas en FLAC y MP3.
 
 Resultado: todas superadas.
 
 ## Funciones verificadas
 
-### Música
+### Audio y letras
 
-- Búsqueda combinada por texto y enlaces.
-- Prioridad FLAC y alternativas reales cuando no hay FLAC.
 - Formatos verificados mediante STREAMINFO/MP3/Vorbis/WAV.
 - Descarga y etiquetado FLAC, MP3, M4A y WAV.
-- Portada incrustada y comprobación del archivo final.
+- Portada y letras incrustadas, con comprobación del archivo final.
 - Pausa, reanudación y descarga en segundo plano con notificación.
 - Recuperación de la cola al volver a abrir la app.
 
