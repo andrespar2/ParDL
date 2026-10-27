@@ -1187,6 +1187,7 @@
     $('#btn-settings-clear-history')?.addEventListener('click', clearHistoryFromSettings);
     $('#btn-data-folder')?.addEventListener('click', openDataFolder);
     $('#btn-github')?.addEventListener('click', () => window.pardl.openExternal('https://github.com/andrespar2/ParDL'));
+    $('#btn-supported-sites')?.addEventListener('click', () => window.pardl.openExternal('https://github.com/yt-dlp/yt-dlp/blob/master/supportedsites.md'));
     $$('.theme-option').forEach((button) => button.addEventListener('click', () => setTheme(button.dataset.theme)));
     const prefToggles = [
       ['#opt-metadata', 'embedMetadata'],

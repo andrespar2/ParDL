@@ -9,7 +9,7 @@ funciones clásicas de la versión CMD.
 - **ParDL-PC-0.4.0-portable.exe** (Windows 10/11, 64 bits).
 - No requiere instalación. Primera ejecución: se extrae en
   `%TEMP%\ParDL-PC-0.4.0` y se reutiliza en los siguientes arranques.
-- SHA-256: `1231dc692a0692bf015bd3df37ec6a8cc0efe5b5fcdead5deea10a6db4d144e7`.
+- SHA-256: `d1bc7f09206cebb3e13e2e12723f5429c428ac32aa68def80d4ae50adbe9b913`.
 
 > El ejecutable no está firmado digitalmente. Si aparece SmartScreen, elige
 > **Más información → Ejecutar de todas formas**. Descarga solo desde esta

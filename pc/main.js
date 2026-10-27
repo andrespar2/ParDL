@@ -446,16 +446,17 @@ async function analyzeUrl(raw) {
 /* ------------------------------------------------------------------ */
 
 function parseProgressLine(line) {
-  if (!line.startsWith('download:')) return null;
-  const rest = line.slice('download:'.length);
-  const parts = rest.split('|');
-  if (parts.length < 4) return null;
+  let raw = String(line || '').trim();
+  if (raw.startsWith('download:')) raw = raw.slice('download:'.length);
+  const parts = raw.split('|');
+  if (parts.length < 5) return null;
   const percent = parseFloat(String(parts[0]).replace('%', '').trim());
   const speed = String(parts[1] || '').trim();
   const eta = String(parts[2] || '').trim();
   const downloaded = Number(parts[3]) || 0;
   const total = Number(parts[4]) || 0;
   if (!Number.isFinite(percent) && !downloaded) return null;
+  if (!Number.isFinite(percent) && !String(parts[0]).includes('%')) return null;
   return {
     percent: Number.isFinite(percent) ? clamp(percent, 0, 100) : 0,
     speed,
