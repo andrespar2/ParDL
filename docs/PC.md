@@ -5,7 +5,7 @@ Aplicación de escritorio para Windows 10/11 de 64 bits, construida con
 manteniendo su filosofía: no requiere instalación, no modifica el sistema y
 funciona desde un único `.exe`.
 
-Descarga: **[ParDL PC v0.4.0](../../releases/tag/pc-v0.4.0)**.
+Descarga: **[ParDL PC v0.4.0](../../../releases/tag/pc-v0.4.0)**.
 
 ## Interfaz
 
